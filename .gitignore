@@ -7,3 +7,6 @@ sessions/
 *.log
 *.zip
 *.tar.gz
+
+# Sesiones privadas de subbots
+data/subbots/
