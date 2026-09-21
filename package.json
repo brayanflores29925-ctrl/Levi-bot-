@@ -1,0 +1,23 @@
+{
+  "name": "levi-bot",
+  "version": "1.0.0",
+  "description": "Levi-Bot con conexión por parincode (Baileys 2025)",
+  "main": "index.js",
+  "type": "module",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.124.0",
+    "@hapi/boom": "^10.0.1",
+    "@imeshsan2008/mfdl": "^1.1.0",
+    "@whiskeysockets/baileys": "^6.7.20",
+    "axios": "^1.20.0",
+    "cfonts": "^3.3.1",
+    "chalk": "^5.6.2",
+    "dotenv": "^17.4.2",
+    "figlet": "^1.9.3",
+    "gradient-string": "^3.0.0",
+    "node-fetch": "^3.3.2",
+    "pino": "^9.4.0",
+    "yt-dlp-exec": "^1.0.2",
+    "yt-search": "^2.13.1"
+  }
+}

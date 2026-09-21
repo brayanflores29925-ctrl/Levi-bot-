@@ -1,0 +1,63 @@
+import ytSearch from 'yt-search'
+import axios from 'axios'
+
+const ALLDL_API = 'https://ahm7xmakki.com/api/alldl'
+
+export default {
+  name: 'play',
+
+  async execute(sock, m, parts) {
+    const chatId = m.chat || m.key?.remoteJid
+    const busqueda = parts?.join(' ').trim()
+
+    if (!busqueda) {
+      return sock.sendMessage(chatId, {
+        text: '❌ Escribe el nombre de una canción.\n\nEjemplo: /play Feliz Navidad'
+      })
+    }
+
+    await sock.sendMessage(chatId, {
+      text: `🔎 Buscando *${busqueda}*...`
+    })
+
+    try {
+      const resultado = await ytSearch(busqueda)
+      const video = resultado.videos?.[0]
+
+      if (!video) {
+        return sock.sendMessage(chatId, {
+          text: '❌ No encontré esa canción.'
+        })
+      }
+
+      const respuesta = await axios.get(ALLDL_API, {
+        params: { url: video.url },
+        timeout: 30000
+      })
+
+      const datos = respuesta.data?.mediaInfo
+
+      if (!respuesta.data?.success || !datos) {
+        return sock.sendMessage(chatId, {
+          text: '❌ No pude obtener los enlaces de descarga.'
+        })
+      }
+
+      await sock.sendMessage(chatId, {
+        text:
+          `🎵 *${datos.title || video.title}*\n\n` +
+          `👤 ${datos.author || video.author?.name || 'Desconocido'}\n\n` +
+          '¿Qué deseas descargar?\n\n' +
+          `🎧 *AUDIO*\n${datos.audioUrl ? 'Disponible' : 'No disponible'}\n\n` +
+          `🎬 *VIDEO*\n${datos.videoUrl ? 'Disponible' : 'No disponible'}\n\n` +
+          'Para descargar usa:\n' +
+          `🎧 /ytmp3 ${video.url}\n` +
+          `🎬 /yt ${video.url}`
+      })
+    } catch (error) {
+      await sock.sendMessage(chatId, {
+        text: `❌ Error en /play: ${error.message}`
+      })
+    }
+  }
+}

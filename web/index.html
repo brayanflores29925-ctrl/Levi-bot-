@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Levi Bot — Vincular Sub-Bot</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <main class="container">
+    <section class="card">
+
+      <h1>🤖 LEVI BOT</h1>
+      <p class="subtitle">Vinculación de Sub-Bot</p>
+
+      <div class="notice">
+        🔐 Solo usuarios autorizados pueden solicitar un código.
+      </div>
+
+      <label for="access">Clave de acceso</label>
+      <input
+        id="access"
+        type="password"
+        placeholder="Ingresa la clave"
+        autocomplete="off"
+      >
+
+      <label for="numero">Número de WhatsApp</label>
+      <input
+        id="numero"
+        type="tel"
+        placeholder="504XXXXXXXX"
+        autocomplete="off"
+      >
+
+      <button id="solicitar">
+        🔐 SOLICITAR CODE
+      </button>
+
+      <div id="resultado"></div>
+
+      <p class="warning">
+        ⚠️ El código es temporal y solo puede utilizarse para una vinculación.
+      </p>
+
+    </section>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>

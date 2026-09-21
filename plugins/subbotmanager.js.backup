@@ -1,0 +1,84 @@
+import fs from 'fs'
+import path from 'path'
+
+const DATA_FILE = path.join(process.cwd(), 'data', 'subbots.json')
+
+export const MAX_SUBBOTS = 10
+
+function cargar() {
+  try {
+    if (!fs.existsSync(DATA_FILE)) return []
+
+    const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'))
+
+    return Array.isArray(data) ? data : []
+  } catch {
+    return []
+  }
+}
+
+function guardar(data) {
+  fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true })
+  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2))
+}
+
+export function obtenerSubbots() {
+  return cargar()
+}
+
+export function hayEspacio() {
+  return cargar().length < MAX_SUBBOTS
+}
+
+export function agregarSubbot(numero) {
+  const subbots = cargar()
+
+  if (subbots.length >= MAX_SUBBOTS) {
+    return {
+      ok: false,
+      motivo: 'limite'
+    }
+  }
+
+  if (subbots.some(subbot => subbot.numero === numero)) {
+    return {
+      ok: false,
+      motivo: 'existente'
+    }
+  }
+
+  const subbot = {
+    numero,
+    agregado: new Date().toISOString(),
+    activo: true
+  }
+
+  subbots.push(subbot)
+  guardar(subbots)
+
+  return {
+    ok: true,
+    subbot
+  }
+}
+
+export function eliminarSubbot(numero) {
+  const subbots = cargar()
+  const nuevos = subbots.filter(subbot => subbot.numero !== numero)
+
+  if (nuevos.length === subbots.length) {
+    return false
+  }
+
+  guardar(nuevos)
+  return true
+}
+
+export function espaciosDisponibles() {
+  return MAX_SUBBOTS - cargar().length
+}
+
+export default {
+  name: 'subbotmanager',
+  execute() {}
+}

@@ -1,0 +1,73 @@
+import fs from 'fs'
+import path from 'path'
+import { eliminarSubbot } from './subbotmanager.js'
+
+const BASE = path.join(process.cwd(), 'data', 'subbots')
+
+export function vigilarSubbot(sock, numero, carpeta, opciones = {}) {
+  const {
+    parentSock,
+    grupo,
+    usuario,
+    onOpen
+  } = opciones
+
+  let confirmado = false
+
+  sock.ev.on('connection.update', async update => {
+    const { connection } = update
+
+    if (connection === 'open') {
+      const archivo = path.join(carpeta, 'estado.json')
+
+      fs.writeFileSync(
+        archivo,
+        JSON.stringify({
+          numero,
+          activo: true,
+          conectado: new Date().toISOString()
+        }, null, 2)
+      )
+
+      if (onOpen) {
+        onOpen()
+      }
+
+      if (!confirmado && parentSock && grupo) {
+        confirmado = true
+
+        const mencion =
+          usuario && usuario.endsWith('@s.whatsapp.net')
+            ? `@${usuario.split('@')[0]}`
+            : ''
+
+        try {
+          await parentSock.sendMessage(grupo, {
+            text:
+              `🎉 *VINCULACIÓN EXITOSA*\n\n` +
+              `${mencion}\n\n` +
+              `Te has vinculado correctamente y felicidades, ya eres un *Sub-Bot*. 🤖`,
+            mentions: mencion ? [usuario] : []
+          })
+        } catch (error) {
+          console.log(
+            `[LEVI] No se pudo enviar confirmación de Sub-Bot: ${error.message}`
+          )
+        }
+      }
+
+      return
+    }
+
+      if (connection === 'close') {
+        console.log(
+          `[LEVI] Sub-bot ${numero} perdió la conexión. La sesión se conserva.`
+        )
+      }
+  })
+}
+
+export default {
+  name: 'subbotconexion',
+  execute() {}
+}

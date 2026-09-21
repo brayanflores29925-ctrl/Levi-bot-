@@ -1,0 +1,45 @@
+import fs from 'fs'
+import path from 'path'
+
+const DATA_PATH = path.join(process.cwd(), 'data', 'perfiles.json')
+
+function cargar() {
+  try {
+    if (!fs.existsSync(DATA_PATH)) return {}
+    return JSON.parse(fs.readFileSync(DATA_PATH, 'utf8') || '{}')
+  } catch {
+    return {}
+  }
+}
+
+function guardar(data) {
+  fs.mkdirSync(path.dirname(DATA_PATH), { recursive: true })
+  fs.writeFileSync(DATA_PATH, JSON.stringify(data, null, 2))
+}
+
+export default {
+  name: 'setbio',
+
+  async execute(sock, m, parts, enviar) {
+    const sender = m.key?.participant || m.participant || m.key?.remoteJid
+    const bio = parts.join(' ').trim()
+
+    if (!bio) {
+      return enviar(
+        '📝 *SETBIO*\n\n' +
+        'Escribe tu biografía.\n\n' +
+        'Ejemplo:\n' +
+        '/setbio Me gusta la música 🎵'
+      )
+    }
+
+    const perfiles = cargar()
+
+    if (!perfiles[sender]) perfiles[sender] = {}
+
+    perfiles[sender].bio = bio
+    guardar(perfiles)
+
+    return enviar(`✅ Tu biografía fue guardada:\n\n📝 *${bio}*`)
+  }
+}

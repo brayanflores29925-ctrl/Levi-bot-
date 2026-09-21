@@ -1,0 +1,46 @@
+import fs from 'fs'
+import path from 'path'
+import { eliminarSubbot } from './subbotmanager.js'
+
+const BASE = path.join(process.cwd(), 'data', 'subbots')
+
+export function vigilarSubbot(sock, numero, carpeta) {
+  sock.ev.on('connection.update', async update => {
+    const { connection } = update
+
+    if (connection === 'open') {
+      const archivo = path.join(carpeta, 'estado.json')
+
+      fs.writeFileSync(
+        archivo,
+        JSON.stringify({
+          numero,
+          activo: true,
+          conectado: new Date().toISOString()
+        }, null, 2)
+      )
+
+      return
+    }
+
+    if (connection === 'close') {
+      eliminarSubbot(numero)
+
+      try {
+        fs.rmSync(carpeta, {
+          recursive: true,
+          force: true
+        })
+      } catch {}
+
+      console.log(
+        `[LEVI] Sub-bot ${numero} desconectado. Espacio liberado.`
+      )
+    }
+  })
+}
+
+export default {
+  name: 'subbotconexion',
+  execute() {}
+}

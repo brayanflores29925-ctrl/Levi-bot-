@@ -1,0 +1,302 @@
+import ytSearch from 'yt-search'
+import { execFile } from 'child_process'
+import { promisify } from 'util'
+import fs from 'fs'
+import path from 'path'
+import { generateWAMessageFromContent, proto } from '@whiskeysockets/baileys'
+
+const execFileAsync = promisify(execFile)
+const pendientes = new Map()
+const TEMP_DIR = path.join(process.cwd(), 'temp')
+
+if (!fs.existsSync(TEMP_DIR)) {
+  fs.mkdirSync(TEMP_DIR, { recursive: true })
+}
+
+function limpiarNombre(nombre) {
+  return nombre
+    .replace(/[\\/:*?"<>|]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 100)
+}
+
+export default {
+  name: 'play',
+  aliases: ['yt', 'song', 'descargar', 'video'],
+
+  async execute(sock, m, parts, enviar) {
+    const chatId = m.key?.remoteJid
+    const busqueda = parts.join(' ').trim()
+
+    if (!busqueda) {
+      return enviar(
+        '⚠️ *𝑷𝑳𝑨𝒀 - 𝑫𝑬𝑺𝑪𝑨𝑑𝑮𝑨𝑫𝑑𝑹*\n\n' +
+        '𝑬𝒔𝒄𝒓𝒊𝒃𝒆 𝒆𝒍 𝒏𝒐𝒎𝒃𝒓𝒆 𝒅𝒆 𝒖𝒏𝒂 𝒄𝒂𝒏𝒄𝒊𝒐́𝒏 𝒐 𝒗𝒊́𝒅𝒆𝒐.\n\n' +
+        '📌 *𝑬𝒋𝒆𝒎𝒑𝒍𝒐:* .play Sweat Weather'
+      )
+    }
+
+    try {
+      await enviar(`🔎 𝑩𝒖𝒔𝒄𝒂𝒏𝒅𝒐: *${busqueda}*...`)
+
+      const resultado = await ytSearch(busqueda)
+      const video = resultado.videos?.[0]
+      console.log("[PLAY DEBUG] ytSearch OK:", video?.url)
+
+      if (!video) {
+        return enviar('❌ 𝑵𝒐 𝒔𝒆 𝒆𝒏𝒄𝒐𝒏𝒕𝒓𝒂𝒓𝒐𝒏 𝒓𝒆𝒔𝒖𝒍𝒕𝒂𝒅𝒐𝒔.')
+      }
+
+      // Guardar la búsqueda pendiente
+      pendientes.set(chatId, {
+        url: video.url,
+        title: video.title
+      })
+
+      const titulo = video.title
+      const canal = video.author?.name || 'Desconocido'
+      const duracion = video.timestamp || 'N/A'
+      const vistas = video.views ? Number(video.views).toLocaleString() : 'N/A'
+
+      const textoDetalle =
+        '╭━━━━━━━━━━━━━━━━━━━━╮\n' +
+        '┃     🎵 𝒀𝑶𝑑𝑻𝑑𝑩𝑬 𝑷𝑳𝑨𝒀     ┃\n' +
+        '╰━━━━━━━━━━━━━━━━━━━━╯\n\n' +
+        `📌 *𝑻𝒊́𝒕𝒖𝒍𝒐:* ${titulo}\n` +
+        `👤 *𝑪𝒂𝒏𝒂𝒍:* ${canal}\n` +
+        `⏱️ *𝑫𝒖𝒓𝒂𝒄𝒊𝒐́𝒏:* ${duracion}\n` +
+        `👁️ *𝑽𝒊𝒔𝒕𝒂𝒔:* ${vistas}\n\n` +
+        '👇 *𝑺𝒆𝒍𝒆𝒄𝒄𝒊𝒐𝒏𝒂 𝒆𝒍 𝒇𝒐𝒓𝒎𝒂𝒕𝒐 𝒅𝒆 𝒅𝒆𝒔𝒄𝒂𝒓𝒈𝒂:*'
+
+      // Intentar enviar con Botones/Lista Interactiva (Native Flow)
+      try {
+        const msg = generateWAMessageFromContent(chatId, {
+          viewOnceMessage: {
+            message: {
+              interactiveMessage: proto.Message.InteractiveMessage.create({
+                body: proto.Message.InteractiveMessage.Body.create({
+                  text: textoDetalle
+                }),
+                footer: proto.Message.InteractiveMessage.Footer.create({
+                  text: '⚡ 𝑳𝒆𝒗𝒊-𝑩𝒐𝒕 • 𝒀𝒐𝒖𝑻𝒖𝒃𝒆 𝑫𝒐𝒘𝒏𝒍𝒐𝒂𝒅𝒆𝒓'
+                }),
+                header: proto.Message.InteractiveMessage.Header.create({
+                  title: '🎬 𝑴𝑬𝑵𝑑 𝑫𝑬 𝑫𝑬𝑺𝑪𝑨𝑑𝑮𝑨',
+                  hasMediaAttachment: false
+                }),
+                nativeFlowMessage: proto.Message.InteractiveMessage.NativeFlowMessage.create({
+                  buttons: [
+                    {
+                      name: 'single_select',
+                      buttonParamsJson: JSON.stringify({
+                        title: '📋 𝑬𝒍𝒆𝒈𝒊𝒓 𝑭𝒐𝒓𝒎𝒂𝒕𝒐',
+                        sections: [
+                          {
+                            title: '𝑶𝒑𝒄𝒊𝒐𝒏𝒆𝒔 𝒅𝒆 𝑫𝒆𝒔𝒄𝒂𝒓𝒈𝒂',
+                            rows: [
+                              {
+                                header: '1. 𝑽𝒊́𝒅𝒆𝒐 MP4',
+                                title: '🎬 𝑫𝒆𝒔𝒄𝒂𝒓𝒈𝒂𝒓 𝑽𝒊́𝒅𝒆𝒐',
+                                description: 'Formato MP4 de alta calidad',
+                                id: '.1'
+                              },
+                              {
+                                header: '2. 𝑨𝒖𝒅𝒊𝒐 MP3',
+                                title: '🎧 𝑫𝒆𝒔𝒄𝒂𝒓𝒈𝒂𝒓 𝑨𝒖𝒅𝒊𝒐',
+                                description: 'Formato MP3 optimizado',
+                                id: '.2'
+                              }
+                            ]
+                          }
+                        ]
+                      })
+                    }
+                  ]
+                })
+              })
+            }
+          }
+        }, { userJid: sock.user.id })
+
+        return await sock.relayMessage(chatId, msg.message, { messageId: msg.key.id })
+
+      } catch (errBotones) {
+        // Fallback a Encuesta Nativa si los botones interactivos no son soportados
+        console.warn('[LEVI] Fallback a Encuestas activado:', errBotones)
+
+        await enviar(
+          `${textoDetalle}\n\n` +
+          '🎬 *.1* → Descargar Vídeo MP4\n' +
+          '🎧 *.2* → Descargar Audio MP3'
+        )
+
+        return await sock.sendMessage(chatId, {
+          poll: {
+            name: '👇 𝑺𝒆𝒍𝒆𝒄𝒄𝒊𝒐𝒏𝒂 𝒖𝒏𝒂 𝒐𝒑𝒄𝒊𝒐́𝒏:',
+            values: ['1. 🎬 Descargar Vídeo', '2. 🎧 Descargar Audio'],
+            selectableCount: 1
+          }
+        })
+      }
+
+    } catch (error) {
+      console.error('[LEVI] ERROR /play:', error)
+      return enviar('❌ 𝑵𝒐 𝒔𝒆 𝒑𝒖𝒅𝒐 𝒓𝒆𝒂𝒍𝒊𝒛𝒂𝒓 𝒍𝒂 𝒃𝒖́𝒔𝒒𝒖𝒆𝒅𝒂.')
+    }
+  },
+
+  async seleccionar(sock, m, opcion) {
+    const chatId = m.key?.remoteJid
+    const opcionFinal = String(opcion).trim()
+    const pendiente = pendientes.get(chatId)
+
+    if (!pendiente) {
+      return sock.sendMessage(
+        chatId,
+        {
+          text:
+            '𝑵𝑑 𝑯𝑨𝒀 𝑑𝑵𝑨 𝑑𝑼́𝑺𝑑𝑼𝑬𝑫𝑨 𝑑𝑬𝑵𝑫𝑰𝑬𝑵𝑻𝑬*\n\n' +
+            'Primero utiliza *.play <nombre de la canción>*.'
+        },
+        { quoted: m }
+      )
+    }
+
+    
+    let esVideo = false
+    let esAudio = false
+
+    if (opcionFinal === '.1' || opcionFinal.includes('1.')) {
+      esVideo = true
+    } else if (opcionFinal === '.2' || opcionFinal.includes('2.')) {
+      esAudio = true
+    } else {
+      return sock.sendMessage(
+        chatId,
+        {
+          text:
+            '*Error leve compruebe nuevamente*\n\n' +
+            '🎬 *.1* = Descargar Vídeo\n' +
+            '🎧 *.2* = Descargar Audio'
+        },
+        { quoted: m }
+      )
+    }
+
+    pendientes.delete(chatId)
+
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`
+    const extension = esVideo ? 'mp4' : 'mp3'
+    const output = path.join(TEMP_DIR, `play-${id}.${extension}`)
+
+    try {
+      await sock.sendMessage(
+        chatId,
+        {
+          text: esVideo
+            ? '⏳ *descargando vídeo*\n\n𝑬𝒔𝒑𝒆𝒓𝒂 𝒖𝒏 𝒎𝒐𝒎𝒆𝒏𝒕𝒐 🎬'
+            : '⏳ *descargando video*\n\n𝑬𝒔𝒑𝒆𝒓𝒂 𝒖𝒏 𝒎𝒐𝒎𝒆𝒏𝒕𝒐 🎧'
+        },
+        { quoted: m }
+      )
+
+      if (esVideo) {
+
+       
+        await execFileAsync(
+          'yt-dlp',
+          [
+            '-f', 'bestvideo[ext=mp4][vcodec^=avc1][height<=480]+bestaudio[ext=m4a]/best[ext=mp4][height<=480]/best[ext=mp4]',
+            '--merge-output-format', 'mp4',
+            '--max-filesize', '50M',
+            '-o', output,
+            pendiente.url
+          ],
+          {
+            timeout: 300000,
+            maxBuffer: 15 * 1024 * 1024
+          }
+        )
+
+        if (!fs.existsSync(output)) {
+          throw new Error('No se pudo crear el vídeo.')
+        }
+
+        await sock.sendMessage(
+          chatId,
+          {
+            video: { url: output },
+            mimetype: 'video/mp4',
+            caption: `📹 *${pendiente.title}*`
+          },
+          { quoted: m }
+        )
+
+      } else {
+
+        
+        await execFileAsync(
+          'yt-dlp',
+          [
+            '-x',
+            '--audio-format', 'mp3',
+            '--audio-quality', '5',
+            '-o', output,
+            pendiente.url
+          ],
+          {
+            timeout: 180000,
+            maxBuffer: 15 * 1024 * 1024
+          }
+        )
+
+        if (!fs.existsSync(output)) {
+          throw new Error('No se pudo crear el audio.')
+        }
+
+        const bufferAudio = fs.readFileSync(output)
+
+        await sock.sendMessage(
+          chatId,
+          {
+            audio: bufferAudio,
+            mimetype: 'audio/mpeg',
+            fileName: `${limpiarNombre(pendiente.title)}.mp3`,
+            ptt: false
+          },
+          { quoted: m }
+        )
+      }
+
+      console.log(`[LEVI] PLAY enviado correctamente (${esVideo ? 'Video' : 'Audio'})`)
+
+    } catch (error) {
+      console.error('[LEVI] ERROR selección PLAY:', error)
+
+      await sock.sendMessage(
+        chatId,
+        {
+          text:
+            'error al descargar el archiv*\n\n' +
+            '𝑷𝒖𝒆𝒅𝒆 𝒒𝒖𝒆 𝒀𝒐𝒖𝑻𝒖𝒃𝒆 𝒉𝒂𝒚𝒂 𝒃𝒍𝒐𝒒𝒖𝒆𝒂𝒅𝒐 𝒕𝒆𝒎𝒑𝒐𝒓𝒂𝒍𝒎𝒆𝒏𝒕𝒆 𝒍𝒂 𝒅𝒆𝒔𝒄𝒂𝒓𝒈𝒂 ' +
+            '𝒐 𝒒𝒖𝒆 𝒆𝒍 𝒇𝒐𝒓𝒎𝒂𝒕𝒐 𝒏𝒐 𝒆𝒔𝒕𝒆́ 𝒅𝒊𝒔𝒑𝒐𝒏𝒊𝒃𝒍𝒆.'
+        },
+        { quoted: m }
+      )
+
+    } finally {
+      try {
+        if (fs.existsSync(output)) {
+          fs.unlinkSync(output)
+        }
+      } catch {}
+    }
+  },
+
+  register(sock) {
+    sock.playSelection = (m, opcion) => {
+      return this.seleccionar(sock, m, String(opcion).trim())
+    }
+  }
+}

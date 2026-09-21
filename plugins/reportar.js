@@ -1,0 +1,57 @@
+export default {
+  name: 'reportar',
+  aliases: ['bug'],
+
+  async execute(sock, m, parts, enviar) {
+    const texto = parts.join(' ').trim()
+
+    if (!texto) {
+      return enviar(
+        '🚨 *REPORTAR PROBLEMA*\n\n' +
+        'Escribe el problema después del comando.\n\n' +
+        'Ejemplo:\n' +
+        '/reportar El comando play no funciona'
+      )
+    }
+
+    // WhatsApp que recibirá los reportes
+    const administrador = '50494874330@s.whatsapp.net'
+
+    const remitente =
+      m.sender ||
+      m.key?.participant ||
+      m.key?.remoteJid ||
+      'Desconocido'
+
+    const fecha = new Date().toLocaleString('es-HN', {
+      timeZone: 'America/Tegucigalpa'
+    })
+
+    const mensaje =
+      '🚨 *NUEVO REPORTE LEVIBOTS*\n\n' +
+      `👤 *Usuario:* ${remitente}\n` +
+      `📅 *Fecha:* ${fecha}\n\n` +
+      `📝 *Reporte:*\n${texto}`
+
+    try {
+      await sock.sendMessage(administrador, {
+        text: mensaje
+      })
+
+      await enviar(
+        '✅ *REPORTE ENVIADO*\n\n' +
+        '🚨 Tu reporte fue enviado correctamente al administrador de LeviBots.\n\n' +
+        `📝 ${texto}\n\n` +
+        '🙏 Gracias por ayudarnos a mejorar.'
+      )
+
+    } catch (error) {
+      console.error('Error enviando reporte:', error)
+
+      await enviar(
+        '❌ No pude enviar el reporte al administrador.\n' +
+        'Inténtalo nuevamente más tarde.'
+      )
+    }
+  }
+}

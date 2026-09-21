@@ -1,0 +1,139 @@
+import ytSearch from 'yt-search'
+import axios from 'axios'
+
+const ALLDL_API = 'https://ahm7xmakki.com/api/alldl'
+const pendientes = new Map()
+
+export default {
+  name: 'play',
+
+  async execute(sock, m, parts, enviar) {
+    const chatId = m.key?.remoteJid
+    const busqueda = parts.join(' ').trim()
+
+    if (!busqueda) {
+      return enviar(
+        '🎵 *PLAY*\n\n' +
+        'Escribe el nombre de una canción.\n\n' +
+        'Ejemplo:\n' +
+        '/play Feliz Navidad'
+      )
+    }
+
+    try {
+      await enviar(`🔎 Buscando *${busqueda}*...`)
+
+      const resultado = await ytSearch(busqueda)
+      const video = resultado.videos?.[0]
+
+      if (!video) {
+        return enviar('❌ No encontré esa canción.')
+      }
+
+      pendientes.set(chatId, {
+        url: video.url,
+        title: video.title
+      })
+
+      return enviar(
+        '🎵 *RESULTADO ENCONTRADO*\n\n' +
+        `📌 *Título:* ${video.title}\n` +
+        `👤 *Canal:* ${video.author?.name || 'Desconocido'}\n` +
+        `⏱️ *Duración:* ${video.timestamp || 'Desconocida'}\n\n` +
+        '¿Qué quieres descargar?\n\n' +
+        '🎧 *1 — AUDIO*\n' +
+        '🎬 *2 — VIDEO*\n\n' +
+        '👉 Responde con *1* o *2*.'
+      )
+
+    } catch (error) {
+      console.error('ERROR /play:', error)
+      return enviar(`❌ Error en /play: ${error.message}`)
+    }
+  },
+
+  async seleccionar(sock, m, opcion) {
+    const chatId = m.key?.remoteJid
+    const pendiente = pendientes.get(chatId)
+
+    if (!pendiente) {
+      return sock.sendMessage(
+        chatId,
+        { text: '❌ No hay una búsqueda pendiente. Usa /play primero.' },
+        { quoted: m }
+      )
+    }
+
+    if (opcion !== '1' && opcion !== '2') return
+
+    pendientes.delete(chatId)
+
+    try {
+      await sock.sendMessage(
+        chatId,
+        { text: '⏳ Obteniendo el archivo...' },
+        { quoted: m }
+      )
+
+      const respuesta = await axios.get(ALLDL_API, {
+        params: { url: pendiente.url },
+        timeout: 30000
+      })
+
+      const datos = respuesta.data?.mediaInfo
+
+      if (!respuesta.data?.success || !datos) {
+        throw new Error('La API no devolvió los archivos.')
+      }
+
+      const titulo = datos.title || pendiente.title
+
+      if (opcion === '1') {
+        if (!datos.audioUrl) {
+          throw new Error('No hay audio disponible.')
+        }
+
+        await sock.sendMessage(
+          chatId,
+          {
+            audio: { url: datos.audioUrl },
+            mimetype: 'audio/mpeg',
+            fileName: `${titulo.replace(/[\\/:*?"<>|]/g, '')}.mp3`
+          },
+          { quoted: m }
+        )
+
+        return
+      }
+
+      if (!datos.videoUrl) {
+        throw new Error('No hay video disponible.')
+      }
+
+      await sock.sendMessage(
+        chatId,
+        {
+          video: { url: datos.videoUrl },
+          mimetype: 'video/mp4',
+          caption: `🎬 ${titulo}`
+        },
+        { quoted: m }
+      )
+
+    } catch (error) {
+      console.error('ERROR selección /play:', error)
+
+      await sock.sendMessage(
+        chatId,
+        { text: `❌ No se pudo enviar el archivo.\n\n${error.message}` },
+        { quoted: m }
+      )
+    }
+  },
+
+  register(sock) {
+    sock.playSelection = async (m, opcion) => {
+      return this.seleccionar(sock, m, String(opcion))
+    }
+  }
+}

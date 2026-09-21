@@ -1,0 +1,138 @@
+import fs from 'fs'
+import path from 'path'
+import pino from 'pino'
+import * as Baileys from '@whiskeysockets/baileys'
+import { obtenerSubbots, MAX_SUBBOTS } from './subbotmanager.js'
+import { vigilarSubbot } from './subbotconexion.js'
+import { cargarComandosSubbot, activarComandosSubbot } from './subbotcore.js'
+
+const GRUPO_OFICIAL = '120363405079498012@g.us'
+const DATA_FILE = path.join(process.cwd(), 'data', 'subbots.json')
+
+const makeWASocket =
+  typeof Baileys.default === 'function'
+    ? Baileys.default
+    : Baileys.makeWASocket
+
+const useMultiFileAuthState =
+  Baileys.useMultiFileAuthState ||
+  Baileys.default?.useMultiFileAuthState
+
+const delay =
+  Baileys.delay ||
+  (ms => new Promise(resolve => setTimeout(resolve, ms)))
+
+const Browsers =
+  Baileys.Browsers ||
+  Baileys.default?.Browsers
+
+function guardar(data) {
+  fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true })
+  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2))
+}
+
+export default {
+  name: 'vincularsubbot',
+
+  async execute(sock, m, parts) {
+    const chatId = m.chat || m.key?.remoteJid
+
+    if (chatId !== GRUPO_OFICIAL) return
+
+    const numero = parts?.join('').replace(/\D/g, '')
+
+    if (!numero || numero.length < 10) {
+      return await sock.sendMessage(chatId, {
+        text:
+          '❌ Número no válido.\n\n' +
+          'Usa:\n' +
+          '*/vincularsubbot 504XXXXXXXX*'
+      })
+    }
+
+    const subbots = obtenerSubbots()
+
+    if (subbots.length >= MAX_SUBBOTS) {
+      return await sock.sendMessage(chatId, {
+        text:
+          '🚫 *LÍMITE ALCANZADO*\n\n' +
+          `Ya hay *${MAX_SUBBOTS}/${MAX_SUBBOTS}* Sub-bots registrados.`
+      })
+    }
+
+    if (subbots.some(s => s.numero === numero)) {
+      return await sock.sendMessage(chatId, {
+        text: '❌ Ese número ya está registrado como Sub-bot.'
+      })
+    }
+
+    const carpeta = path.join(
+      process.cwd(),
+      'data',
+      'subbots',
+      numero
+    )
+
+    fs.mkdirSync(carpeta, { recursive: true })
+
+    try {
+      const { state, saveCreds } =
+        await useMultiFileAuthState(carpeta)
+
+      const opciones = {
+        auth: state,
+        logger: pino({ level: 'silent' }),
+        printQRInTerminal: false,
+        markOnlineOnConnect: false
+      }
+
+      if (Browsers) {
+        opciones.browser = Browsers.ubuntu('Chrome')
+      }
+
+      const subSock = makeWASocket(opciones)
+
+      subSock.ev.on('creds.update', saveCreds)
+      vigilarSubbot(subSock, numero, carpeta)
+      await cargarComandosSubbot(subSock)
+      activarComandosSubbot(subSock)
+
+      await delay(2000)
+
+      const code = await subSock.requestPairingCode(numero)
+      const codigo = String(code)
+        .match(/.{1,4}/g)
+        ?.join('-') || String(code)
+
+      const datos = [...subbots, {
+        numero,
+        carpeta,
+        agregado: new Date().toISOString(),
+        activo: false
+      }]
+
+      guardar(datos)
+
+      await sock.sendMessage(chatId, {
+        text:
+          '🤖 *VINCULACIÓN DE SUB-BOT*\n\n' +
+          `📱 Número: *${numero}*\n\n` +
+          `🔐 *CÓDIGO:*\n` +
+          `*${codigo}*\n\n` +
+          '📲 En el WhatsApp de ese número ve a:\n' +
+          '*Ajustes → Dispositivos vinculados → Vincular dispositivo → Vincular con número de teléfono*\n\n' +
+          '⚠️ Introduce el código mostrado arriba.\n\n' +
+          '⏳ Espera a que WhatsApp confirme la vinculación.'
+      })
+
+    } catch (error) {
+      fs.rmSync(carpeta, { recursive: true, force: true })
+
+      await sock.sendMessage(chatId, {
+        text:
+          '❌ No pude generar el código de vinculación.\n\n' +
+          `Error: ${error.message}`
+      })
+    }
+  }
+}

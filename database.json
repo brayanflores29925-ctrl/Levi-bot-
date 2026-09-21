@@ -1,0 +1,83 @@
+{
+  "users": {
+    "180711436906749@lid": {
+      "registrado": true,
+      "nombre": "Dev",
+      "edad": 16,
+      "apellido": "natsuki",
+      "desc": "Sin descripción",
+      "genero": "No especificado",
+      "cumple": "No configurado",
+      "pareja": null
+    },
+    "257922013597821@lid": {
+      "registrado": true,
+      "nombre": "kerin",
+      "edad": 15,
+      "apellido": "",
+      "desc": "Sin descripción",
+      "genero": "No especificado",
+      "cumple": "No configurado",
+      "pareja": null
+    },
+    "70781799264326@lid": {
+      "registrado": false,
+      "nombre": "Sin registrar",
+      "edad": "N/A",
+      "apellido": "",
+      "desc": "Sin descripción",
+      "genero": "No especificado",
+      "cumple": "No configurado",
+      "pareja": null,
+      "personajes": [
+        {
+          "nombre": "Shakira",
+          "fecha": 1788653804063
+        }
+      ]
+    },
+    "17713049116884@lid": {
+      "registrado": false,
+      "nombre": "Sin registrar",
+      "edad": "N/A",
+      "apellido": "",
+      "desc": "Sin descripción",
+      "genero": "No especificado",
+      "cumple": "No configurado",
+      "pareja": null,
+      "personajes": [
+        {
+          "nombre": "Karol G",
+          "fecha": 1788721562672
+        },
+        {
+          "nombre": "Naruto",
+          "fecha": 1788721581309
+        },
+        {
+          "nombre": "Shakira",
+          "fecha": 1788721598819
+        }
+      ],
+      "coins": 353
+    }
+  },
+  "propuestas": {},
+  "ventas": {
+    "tienda": {
+      "nombre": "Mi Tienda",
+      "moneda": "L",
+      "tipo": "general",
+      "imagen": ""
+    },
+    "productos": {},
+    "saldos": {
+      "17713049116884@lid": 100
+    },
+    "compras": [],
+    "ventas": [],
+    "configuracion": {
+      "activa": true
+    }
+  }
+}

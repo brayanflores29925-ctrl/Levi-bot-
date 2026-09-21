@@ -1,0 +1,94 @@
+import fs from 'fs'
+import path from 'path'
+
+const PLUGINS_PATH = path.join(process.cwd(), 'plugins')
+const PREFIXES = ['.', '!', '#', '/']
+
+export async function cargarComandosSubbot(sock) {
+  sock.commands = new Map()
+
+  const files = fs.readdirSync(PLUGINS_PATH)
+    .filter(file => file.endsWith('.js'))
+    .filter(file => ![
+      'subbotcore.js',
+      'subbotconexion.js',
+      'subbotmanager.js'
+    ].includes(file))
+
+  for (const file of files) {
+    try {
+      const modulo = await import(
+        `file://${path.join(PLUGINS_PATH, file)}?subbot=${Date.now()}`
+      )
+
+      const command = modulo.default
+
+      if (!command?.name || typeof command.execute !== 'function') continue
+
+      const nombres = Array.isArray(command.name)
+        ? command.name
+        : [command.name]
+
+      for (const nombre of nombres) {
+        sock.commands.set(nombre.toLowerCase(), command)
+      }
+
+      if (Array.isArray(command.aliases)) {
+        for (const alias of command.aliases) {
+          sock.commands.set(alias.toLowerCase(), command)
+        }
+      }
+    } catch {}
+  }
+}
+
+export function activarComandosSubbot(sock) {
+  sock.ev.on('messages.upsert', async ({ messages }) => {
+    try {
+      const m = messages?.[0]
+
+      if (!m?.message || m.key?.fromMe) return
+
+      let text =
+        m.message.conversation ||
+        m.message.extendedTextMessage?.text ||
+        m.message.imageMessage?.caption ||
+        m.message.videoMessage?.caption ||
+        ''
+
+      if (!text) return
+
+      const prefix = PREFIXES.find(p => text.startsWith(p))
+
+      if (!prefix) return
+
+      const body = text.slice(prefix.length).trim()
+
+      if (!body) return
+
+      const parts = body.split(/\s+/)
+      const commandName = parts.shift()?.toLowerCase()
+
+      if (!commandName) return
+
+      const command = sock.commands?.get(commandName)
+
+      if (!command) return
+
+      const enviar = (message, options = {}) => {
+        return sock.sendMessage(
+          m.key.remoteJid,
+          { text: message, ...options },
+          { quoted: m }
+        )
+      }
+
+      await command.execute(sock, m, parts, enviar)
+
+    } catch (error) {
+      console.log(
+        `[LEVI] Error en Sub-bot: ${error.message}`
+      )
+    }
+  })
+}

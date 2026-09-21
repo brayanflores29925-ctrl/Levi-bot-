@@ -1,0 +1,326 @@
+import 'dotenv/config'
+import Anthropic from '@anthropic-ai/sdk'
+import axios from 'axios'
+
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY
+})
+
+const advertencias = new Map()
+const ultimaAdvertencia = new Map()
+
+const MAX_HISTORIAL = 5
+const CONFIANZA_MINIMA = 0.90
+const TIEMPO_REINICIO = 30 * 60 * 1000
+
+function normalizarJid(jid = '') {
+  return jid.split(':')[0]
+}
+
+async function analizarConClaude(textos) {
+  if (!anthropic) return null
+
+  const historialTexto = textos.length
+    ? textos.map((t, i) => `${i + 1}. ${t}`).join('\n')
+    : '(sin historial)'
+
+  const prompt =
+    'Analiza si el comportamiento de este usuario parece ser generado por un bot no autorizado de WhatsApp.\n\n' +
+    'IMPORTANTE:\n' +
+    '- Un solo mensaje o comando no demuestra que sea un bot.\n' +
+    '- No marques como bot a una persona normal sin evidencia suficiente.\n' +
+    '- Analiza el conjunto de mensajes y busca señales claras de automatización repetitiva.\n' +
+    '- Si no hay evidencia suficiente, responde bot:false.\n' +
+    '- Responde SOLO con JSON válido.\n\n' +
+    'Historial reciente:\n' +
+    historialTexto +
+    '\n\n' +
+    'Formato obligatorio:\n' +
+    '{"bot":false,"confianza":0.20,"motivo":"No hay evidencia suficiente de automatización"}'
+
+  try {
+    const respuesta = await anthropic.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 300,
+      messages: [
+        {
+          role: 'user',
+          content: prompt
+        }
+      ]
+    })
+
+    const resultado = respuesta.content
+      ?.filter(item => item.type === 'text')
+      ?.map(item => item.text)
+      ?.join(' ')
+
+    if (!resultado) return await analizarConClaude(textos)
+
+    const limpio = String(resultado)
+      .replace(/```json/gi, '')
+      .replace(/```/g, '')
+      .trim()
+
+    const inicio = limpio.indexOf('{')
+    const fin = limpio.lastIndexOf('}')
+
+    if (inicio === -1 || fin === -1) return await analizarConClaude(textos)
+
+    const datos = JSON.parse(
+      limpio.slice(inicio, fin + 1)
+    )
+
+    let confianza = Number(datos.confianza)
+
+    if (confianza > 1 && confianza <= 100) {
+      confianza = confianza / 100
+    }
+
+    return {
+      bot: datos.bot === true,
+      confianza: Number.isFinite(confianza) ? confianza : 0,
+      motivo: String(datos.motivo || 'Sin motivo')
+    }
+
+  } catch (error) {
+    console.error(
+      '[LEVI] Error analizando con Claude:',
+      error.message
+    )
+    return null
+  }
+}
+
+async function analizarConIA(textos) {
+  const historialTexto = textos.length
+    ? textos.map((t, i) => `${i + 1}. ${t}`).join('\n')
+    : '(sin historial)'
+
+  const prompt =
+    'Analiza si el comportamiento de este usuario parece ser generado por un bot no autorizado de WhatsApp.\n\n' +
+    'IMPORTANTE:\n' +
+    '- Un simple comando /menu NO demuestra que sea un bot.\n' +
+    '- No marques como bot a una persona normal solo por usar comandos.\n' +
+    '- Analiza el conjunto de mensajes y busca señales claras de automatización repetitiva.\n' +
+    '- Si no hay evidencia suficiente, responde bot:false.\n' +
+    '- Responde SOLO con JSON válido.\n\n' +
+    'Historial reciente del usuario:\n' +
+    historialTexto +
+    '\n\n' +
+    'Formato obligatorio:\n' +
+    '{"bot":false,"confianza":0.20,"motivo":"No hay evidencia suficiente de automatización"}'
+
+  try {
+    const respuesta = await axios.get(
+      'https://prexzyapis.com/ai/deepquery',
+      {
+        params: { prompt },
+        timeout: 30000
+      }
+    )
+
+    const resultado =
+      respuesta.data?.response ||
+      respuesta.data?.result ||
+      respuesta.data?.answer ||
+      respuesta.data?.message ||
+      respuesta.data?.text
+
+    if (!resultado) return null
+
+    const limpio = String(resultado)
+      .replace(/```json/gi, '')
+      .replace(/```/g, '')
+      .trim()
+
+    const inicio = limpio.indexOf('{')
+    const fin = limpio.lastIndexOf('}')
+
+    if (inicio === -1 || fin === -1) return null
+
+    const datos = JSON.parse(limpio.slice(inicio, fin + 1))
+
+    let confianza = Number(datos.confianza)
+
+    if (confianza > 1 && confianza <= 100) {
+      confianza = confianza / 100
+    }
+
+    return {
+      bot: datos.bot === true,
+      confianza: Number.isFinite(confianza) ? confianza : 0,
+      motivo: String(datos.motivo || 'Sin motivo')
+    }
+
+  } catch (error) {
+    console.error(
+      '[LEVI] Error analizando bot con IA:',
+      error.message
+    )
+    return await analizarConClaude(textos)
+  }
+}
+
+export default {
+  name: 'botnoautorizado',
+
+  async execute(sock, m, parts, enviar) {
+    const chatId = m?.chat || m?.key?.remoteJid
+    const usuario = m?.sender || m?.key?.participant || m?.participant
+    const texto = m?.text || parts?.join(' ') || '/menu'
+
+    return this.ejecutar(sock, chatId, usuario, texto)
+  },
+
+  async ejecutar(sock, chatId, usuario, texto = '/menu') {
+    if (!chatId?.endsWith('@g.us') || !usuario) return
+
+    const usuarioBase = normalizarJid(usuario)
+    const botBase = normalizarJid(sock.user?.id || '')
+
+    // 🛡️ LeviBot nunca se detecta a sí mismo
+    if (
+      usuarioBase &&
+      botBase &&
+      usuarioBase === botBase
+    ) {
+      return
+    }
+
+    // 👑 Los administradores quedan protegidos
+    try {
+      const metadata = await sock.groupMetadata(chatId)
+
+      const miembro = metadata.participants?.find(
+        p => normalizarJid(p.id) === usuarioBase
+      )
+
+      if (miembro?.admin) {
+        return
+      }
+
+    } catch (error) {
+      console.error(
+        '[LEVI] No se pudo comprobar el administrador:',
+        error.message
+      )
+      return
+    }
+
+    const clave = `${chatId}:${usuarioBase}`
+
+    // 🧠 Leer el historial automático registrado por index.js
+    const historialGlobal = sock.botDetectionHistory
+    let lista = []
+
+    if (historialGlobal instanceof Map) {
+      const mensajes = historialGlobal.get(clave) || []
+
+      lista = mensajes
+        .map(item =>
+          typeof item === 'object'
+            ? item.texto
+            : item
+        )
+        .filter(Boolean)
+        .slice(-MAX_HISTORIAL)
+    }
+
+    // Si todavía no existe historial automático, usamos el mensaje actual
+    if (!lista.length) {
+      lista = [String(texto).slice(0, 500)]
+    }
+
+    // Evitar duplicar el /menu si ya está registrado
+    const textoActual = String(texto).slice(0, 500)
+
+    if (lista[lista.length - 1] !== textoActual) {
+      lista.push(textoActual)
+      lista = lista.slice(-MAX_HISTORIAL)
+    }
+
+    console.log(
+      `[LEVI] Analizando ${usuarioBase} con historial de ${lista.length} mensaje(s)...`
+    )
+
+    const analisis = await analizarConIA(lista)
+
+    if (!analisis) {
+      console.log(
+        `[LEVI] IA sin resultado para ${usuarioBase}. No se toma ninguna acción.`
+      )
+      return
+    }
+
+    console.log(
+      `[LEVI] IA: bot=${analisis.bot} confianza=${analisis.confianza} motivo=${analisis.motivo}`
+    )
+
+    // 🤖 Solo actuar con confirmación de IA y alta confianza
+    if (
+      !analisis.bot ||
+      analisis.confianza < CONFIANZA_MINIMA
+    ) {
+      return
+    }
+
+    const ahora = Date.now()
+    const ultima = ultimaAdvertencia.get(clave) || 0
+
+    // 🔄 Reiniciar advertencias después de 30 minutos
+    if (
+      ultima &&
+      ahora - ultima >= TIEMPO_REINICIO
+    ) {
+      advertencias.delete(clave)
+    }
+
+    const cantidad =
+      (advertencias.get(clave) || 0) + 1
+
+    advertencias.set(clave, cantidad)
+    ultimaAdvertencia.set(clave, ahora)
+
+    // ⚠️ Primera detección
+    if (cantidad === 1) {
+      await sock.sendMessage(chatId, {
+        text:
+          `⚠️ *ADVERTENCIA 1/2*\n\n` +
+          `@${usuarioBase}, se detectó actividad que parece corresponder a un bot no autorizado.\n\n` +
+          `🤖 *Análisis:* ${analisis.motivo}\n\n` +
+          `⚠️ Una segunda detección confirmada provocará tu eliminación del grupo.`,
+        mentions: [usuario]
+      })
+
+      return
+    }
+
+    // 🚫 Segunda detección
+    if (cantidad >= 2) {
+      try {
+        await sock.groupParticipantsUpdate(
+          chatId,
+          [usuario],
+          'remove'
+        )
+
+        advertencias.delete(clave)
+        ultimaAdvertencia.delete(clave)
+
+        await sock.sendMessage(chatId, {
+          text:
+            `🚫 *USUARIO ELIMINADO*\n\n` +
+            `@${usuarioBase} fue eliminado del grupo por usar un bot no autorizado.`,
+          mentions: [usuario]
+        })
+
+      } catch (error) {
+        console.error(
+          '[LEVI] Error eliminando usuario detectado como bot:',
+          error.message
+        )
+      }
+    }
+  }
+}

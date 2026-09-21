@@ -1,0 +1,62 @@
+import fs from 'fs'
+import path from 'path'
+
+const FILE = path.join(process.cwd(), 'database.json')
+
+function cargarDB() {
+  try {
+    return JSON.parse(fs.readFileSync(FILE, 'utf8'))
+  } catch {
+    return {}
+  }
+}
+
+function guardarDB(db) {
+  fs.writeFileSync(FILE, JSON.stringify(db, null, 2))
+}
+
+export default {
+  name: 'setbye',
+  aliases: ['textobye'],
+
+  async execute(sock, m, args, enviar) {
+    const chatId = m.chat || m.key?.remoteJid
+    const sender = m.sender || m.key?.participant || chatId
+
+    if (!chatId?.endsWith('@g.us')) {
+      return enviar('❌ Este comando solo funciona en grupos.')
+    }
+
+    const metadata = await sock.groupMetadata(chatId)
+    const admin = metadata.participants.find(p => p.id === sender)?.admin
+
+    if (!admin) {
+      return enviar('❌ Solo un administrador puede configurar la despedida.')
+    }
+
+    if (!args.length) {
+      return enviar(
+        '👋 *SETBYE*\n\n' +
+        'Uso:\n' +
+        '/Setbye Tu mensaje de despedida\n\n' +
+        'Ejemplo:\n' +
+        '/Setbye 👋 Hasta luego @usuario'
+      )
+    }
+
+    const db = cargarDB()
+
+    if (!db.grupos) db.grupos = {}
+    if (!db.grupos[chatId]) db.grupos[chatId] = {}
+
+    const texto = args.join(' ').trim()
+
+    db.grupos[chatId].byeText = texto
+    guardarDB(db)
+
+    return enviar(
+      `✅ *Despedida configurada.*\n\n` +
+      `📝 ${texto}`
+    )
+  }
+}

@@ -1,0 +1,429 @@
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+
+export default {
+  name: 'menu',
+
+  async execute(sock, m) {
+    const chatId = m.chat || m.key?.remoteJid
+    const sender = m.sender || m.key?.participant || chatId
+    const numero = sender.split('@')[0]
+
+    const texto = `
+╭━━━━━━━━━━━━━━━━━━━━╮
+┃       🤖 𝙇𝙚𝙫𝙞𝘽𝙤𝙩
+┃ 👋 Hola @${numero}
+┃ 🔹 Prefijos: . | / | * | 1
+╰━━━━━━━━━━━━━━━━━━━━╯
+
+📋 MENÚ DE COMANDOS
+
+📢 CANAL OFICIAL
+https://whatsapp.com/channel/0029VbDBJk4BfxoCBx5ov41y
+
+🤖 INFORMACIÓN DEL BOT
+📦 Versión: 1.0.0
+👨‍💻 Creador: Josué
+📅 Fecha: ${new Intl.DateTimeFormat('es-HN', {
+  timeZone: 'America/Tegucigalpa',
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric'
+}).format(new Date())}
+
+👥 GRUPO OFICIAL
+https://chat.whatsapp.com/EIUm1G9DrrzB440yROjOEq
+
+🤖 ¿QUIERES SER SUB-BOT?
+
+🔗 Usa /code para obtener tu código de conexión y convertirte en Sub-Bot.
+
+⚠️ IMPORTANTE
+• Los Sub-Bots solo funcionan en el grupo oficial de LeviBots.
+• 👥 Límite máximo: 10 Sub-Bots.
+• 🔑 Para vincular un Sub-Bot utiliza el código obtenido con /code.
+
+╭━━〔 👤 PERFILES 〕━━╮
+❑ /perfil — 👤 Ver tu perfil.
+❑ /casarse — 💍 Casarte con otro usuario.
+❑ /divorcio — 💔 Terminar un matrimonio.
+❑ /setdesc — 📝 Establecer tu descripción.
+❑ /setgenero — ⚧️ Establecer tu género.
+❑ /setcumple — 🎂 Guardar tu cumpleaños.
+❑ /deldesc — 🗑️ Borrar tu descripción.
+❑ /delgenero — 🗑️ Borrar tu género.
+❑ /delcumple — 🗑️ Borrar tu cumpleaños.
+❑ /ship — ❤️ Calcular compatibilidad entre usuarios.
+❑ /infobot — 🤖 Ver información del bot.
+❑ /sugerencia — 💡 Enviar una sugerencia.
+❑ /bug — 🐛 Reportar un error.
+❑ /ping — 📡 Comprobar la respuesta del bot.
+❑ /menulogos — 🖼️ Ver los logos del menú.
+╰━━━━━━━━━━━━━━━━━━━━╯
+
+╭━━〔 🛡️ ADMINISTRACIÓN 〕━━╮
+❑ /configp — ⚙️ Configurar el grupo.
+❑ /status — 📊 Ver el estado del grupo.
+❑ /autosolicitudes — 🤖 Aceptar solicitudes automáticamente.
+❑ /Adv — ⚠️ Dar una advertencia.
+❑ /cerrar — 🔒 Cerrar el grupo.
+❑ /abrir — 🔓 Abrir el grupo.
+❑ /horario — ⏰ Programar apertura y cierre automático.
+❑ /Warn — ⚠️ Gestionar advertencias.
+❑ /rmadv — 🗑️ Quitar una advertencia.
+❑ /Advlist — 📋 Ver las advertencias.
+❑ /Antiimg — 🖼️ Controlar imágenes.
+❑ /Antivideo — 🎥 Controlar videos.
+❑ /Antisticker — 🏷️ Controlar stickers.
+❑ /Antilinkgp — 🔗 Bloquear enlaces de grupos.
+❑ /Antilinkhard — 🔒 Bloquear enlaces de forma estricta.
+❑ /Antifacke — 🚫 Controlar enlaces falsos.
+❑ /leyendafacke — 📝 Configurar aviso de enlaces falsos.
+❑ /Antipalabrotas — 🤬 Filtrar malas palabras.
+❑ /Addpalabra — ➕ Agregar una palabra al filtro.
+❑ /Delpalabra — ➖ Eliminar una palabra del filtro.
+❑ /listapalabra — 📋 Ver palabras filtradas.
+❑ /Antispam — 🚫 Activar protección contra spam.
+❑ /limiteglobal — 📊 Configurar límite global.
+❑ /Antiflood — 🌊 Controlar mensajes repetidos.
+❑ /Leveling — ⭐ Activar sistema de niveles.
+❑ /del — 🗑️ Elimina un mensaje respondiéndolo con este comando.
+❑ /Modorpg — 🎮 Activar modo RPG.
+❑ /creartorneo — 🏆 Crear un torneo.
+❑ /modoadmin — 🛡️ Activar modo administrador.
+❑ /Multiprefijo — 🔤 Activar varios prefijos.
+❑ /Addprefijo — ➕ Agregar un prefijo.
+❑ /delprefijo — ➖ Eliminar un prefijo.
+❑ /Mute — 🔇 Silenciar a un usuario.
+❑ /Desmute — 🔊 Quitar silencio.
+❑ /Kick — 👢 Expulsar a un usuario.
+❑ /ban — 🚫 Bloquear a un usuario.
+❑ /Promover — 👑 Dar administrador.
+❑ /Degradar — 👤 Quitar administrador.
+❑ /notify — 🔔 Notificar al grupo.
+❑ /todos — 📢 Mencionar a todos.
+❑ /Grupo — 👥 Administrar opciones del grupo.
+❑ /Linkgp — 🔗 Obtener enlace del grupo.
+❑ /reglas — 📜 Ver las reglas.
+❑ /contadormensajes — 🔢 Contar mensajes.
+❑ /veractividad — 📈 Ver actividad.
+❑ /rankactivos — 🏆 Ranking de usuarios activos.
+❑ /reiniciarcontador — 🔄 Reiniciar contador.
+❑ /Idioma — 🌐 Cambiar idioma.
+❑ /verfantasmas — 👻 Ver usuarios inactivos.
+❑ /kickfantasmas — 👻 Expulsar usuarios inactivos.
+❑ /del — 🗑️ Eliminar un mensaje.
+❑ /Infowelcome — 👋 Ver configuración de bienvenida.
+❑ /welcome — 👋 Activar/desactivar bienvenida.
+❑ /Setwelcome — 📝 Configurar bienvenida.
+❑ /Setbye — 👋 Configurar despedida.
+❑ /textowelcome — 📝 Cambiar texto de bienvenida.
+❑ /textobye — 📝 Cambiar texto de despedida.
+❑ /Tipowelcome — 🎨 Cambiar tipo de bienvenida.
+❑ /Tipobye — 🎨 Cambiar tipo de despedida.
+❑ /Textwelcome — 📝 Mostrar texto de bienvenida.
+❑ /Textbye — 📝 Mostrar texto de despedida.
+❑ /Delbye — 🗑️ Eliminar despedida.
+❑ /x9vistaunica — 👁️ Gestionar mensajes de vista única.
+❑ /revelar — 👁️ Revelar contenido compatible.
+❑ /x9 — 👁️ Gestionar contenido de vista única.
+❑ /odelete — 🗑️ Gestionar mensajes eliminados.
+❑ /Ausente — 💤 Activar estado ausente.
+❑ /Activo — 🟢 Marcar estado activo.
+❑ /sorteo — 🎁 Crear un sorteo.
+❑ /infogp — ℹ️ Ver información del grupo.
+╰━━━━━━━━━━━━━━━━━━━━╯
+
+╭━━〔 🛒 VENTAS 〕━━╮
+❑ /infoventas — 🛒 Ver información de ventas.
+❑ /Setup — ⚙️ Configurar la tienda.
+❑ /Setnombre — 📝 Cambiar nombre de la tienda.
+❑ /Setmoneda — 💰 Configurar moneda.
+❑ /settipo — 🏷️ Configurar tipo de tienda.
+❑ /setimgtienda — 🖼️ Cambiar imagen de tienda.
+❑ /Tienda — 🛒 Ver productos.
+❑ /Recargar — 💳 Recargar saldo.
+❑ /Confirmar — ✅ Confirmar una operación.
+❑ /delsaldo — 🗑️ Eliminar saldo.
+❑ /Addproducto — ➕ Agregar producto.
+❑ /Delproducto — ➖ Eliminar producto.
+❑ /Delallproductos — 🗑️ Eliminar todos los productos.
+❑ /Editarproducto — ✏️ Editar producto.
+❑ /Comprar — 🛍️ Comprar un producto.
+❑ /Miscompras — 📦 Ver tus compras.
+❑ /Totalventas — 💰 Ver total de ventas.
+❑ /Topcompradores — 🏆 Ranking de compradores.
+❑ /Pocostock — 📦 Ver productos con poco stock.
+❑ /Estadisticas — 📊 Ver estadísticas.
+❑ /Puntos — ⭐ Ver puntos.
+❑ /autoferta — 🤖 Configurar ofertas automáticas.
+❑ /setoferta — 🏷️ Configurar una oferta.
+❑ /autorepo — 🔄 Configurar reposición automática.
+❑ /crearrespuesta — 💬 Crear respuesta automática.
+❑ /crearrespuestaimg — 🖼️ Crear respuesta con imagen.
+❑ /listarrespuestas — 📋 Ver respuestas creadas.
+❑ /crearcomando — ➕ Crear comando personalizado.
+❑ /eliminarcomando — 🗑️ Eliminar comando personalizado.
+❑ /menunuevo — 📋 Mostrar menú nuevo.
+╰━━━━━━━━━━━━━━━━━━━━╯
+
+╭━━〔 📥 DESCARGAS 〕━━╮
+❑ /play — 🎵 Buscar y reproducir música.
+❑ /play2 — 🎵 Descargar música.
+❑ /playdoc — 📄 Descargar audio como documento.
+❑ /playvideo — 🎥 Descargar video.
+❑ /ytsearch — 🔎 Buscar videos en YouTube.
+❑ /tiktok — 📱 Descargar contenido de TikTok.
+❑ /x — 📥 Descargar contenido compatible.
+❑ /Instagram — 📸 Descargar contenido de Instagram.
+❑ /facebook — 📘 Descargar contenido de Facebook.
+❑ /descargarapk — 📦 Descargar un APK.
+❑ /mediafire — 📥 Descargar archivos de MediaFire.
+❑ /Pinterest — 📌 Descargar contenido de Pinterest.
+╰━━━━━━━━━━━━━━━━━━━━╯
+
+╭━━〔 🛠️ HERRAMIENTAS 〕━━╮
+❑ /simi — 🤖 Chatear con SimSimi.
+❑ /chatgpt — 🤖 Consultar a ChatGPT.
+❑ /llama — 🦙 Consultar IA Llama.
+❑ /google — 🔎 Buscar en Google.
+❑ /wikipedia — 📚 Buscar en Wikipedia.
+❑ /clima — 🌤️ Consultar el clima.
+❑ /mareas — 🌊 Consultar las mareas.
+❑ /horoscopo — 🔮 Consultar el horóscopo.
+❑ /Hd — ✨ Mejorar una imagen.
+❑ /totext — 📝 Convertir imagen a texto.
+❑ /acortarlink — 🔗 Acortar un enlace.
+❑ /videolento — 🐌 Poner un video en cámara lenta.
+❑ /videorapido — ⚡ Acelerar un video.
+❑ /videocontrario — 🔄 Reproducir video al contrario.
+❑ /audiolento — 🐌 Hacer audio más lento.
+❑ /audiorapido — ⚡ Acelerar audio.
+❑ /grave — 🔊 Aplicar efecto grave al audio.
+❑ /grave2 — 🔊 Aplicar otro efecto grave.
+❑ /ardilla — 🐿️ Aplicar efecto de voz de ardilla.
+❑ /explotar — 💥 Aplicar efecto de audio.
+❑ /bass — 🔊 Aumentar bajos.
+❑ /bass2 — 🔊 Aplicar efecto de bajos.
+❑ /bass3 — 🔊 Aplicar otro efecto de bajos.
+❑ /adolecente — 🎙️ Aplicar efecto de voz.
+╰━━━━━━━━━━━━━━━━━━━━╯
+
+╭━━〔 🖼️ STICKERS / FIGUS 〕━━╮
+❑ /attp — ✍️ Crear sticker de texto.
+❑ /attp2 — ✍️ Crear otro sticker de texto.
+❑ /attp3 — ✍️ Crear otro estilo de texto.
+❑ /sticker — 🖼️ Crear sticker.
+❑ /sticker2 — 🖼️ Crear sticker alternativo.
+❑ /emojimix — 😀 Combinar emojis.
+❑ /setsticker — 📌 Guardar sticker.
+❑ /toimg — 🖼️ Convertir sticker a imagen.
+❑ /togif — 🎞️ Convertir sticker a GIF.
+❑ /placaloli — 🎨 Crear sticker especial.
+╰━━━━━━━━━━━━━━━━━━━━╯
+
+╭━━〔 💰 ECONOMÍA 〕━━╮
+❑ /cartera — 💰 Ver tu saldo.
+❑ /dep — 🏦 Depositar monedas.
+❑ /ret — 💵 Retirar monedas.
+❑ /rankcoins — 🏆 Ranking de monedas.
+❑ /regalar — 🎁 Regalar monedas.
+❑ /daily — 🎁 Reclamar recompensa diaria.
+❑ /work — 💼 Trabajar para ganar monedas.
+❑ /crimen — 🕵️ Intentar ganar monedas.
+❑ /robar — 💰 Intentar robar monedas.
+❑ /pescar — 🎣 Pescar recompensas.
+❑ /minar — ⛏️ Minar para conseguir monedas.
+❑ /casino — 🎰 Jugar en el casino.
+❑ /dado — 🎲 Lanzar un dado.
+❑ /flip — 🪙 Lanzar una moneda.
+❑ /blackdice — 🎲 Jugar a los dados.
+❑ /tiendarpg — 🛒 Ver tienda RPG.
+❑ /ranknivel — 🏆 Ranking por nivel.
+❑ /minivel — ⭐ Ver tu nivel.
+❑ /vernivel — 📊 Ver nivel de un usuario.
+❑ /niveles — 📋 Ver sistema de niveles.
+╰━━━━━━━━━━━━━━━━━━━━╯
+
+╭━━〔 🎴 GACHA 〕━━╮
+❑ /rw — 🎴 Realizar una tirada.
+❑ /clain — 🎁 Reclamar recompensa.
+❑ /harem — 💕 Ver colección.
+❑ /delchar — 🗑️ Eliminar personaje.
+❑ /sell — 💰 Vender personaje.
+❑ /wshop — 🛒 Ver tienda.
+❑ /buyc — 🛍️ Comprar personaje.
+❑ /givechar — 🎁 Dar un personaje.
+❑ /giveall — 🎁 Dar personajes.
+❑ /trade — 🔄 Intercambiar personajes.
+❑ /votar — 🗳️ Votar.
+❑ /wtop — 🏆 Ver ranking.
+╰━━━━━━━━━━━━━━━━━━━━╯
+
+╭━━〔 🎮 JUEGOS 〕━━╮
+❑ /tresenlinea — ❌⭕ Jugar tres en línea.
+❑ /resettresenlinea — 🔄 Reiniciar partida.
+❑ /gartic — 🎨 Iniciar Gartic.
+❑ /revelargartic — 👀 Revelar respuesta de Gartic.
+❑ /enigma — 🧩 Jugar enigmas.
+❑ /revelarenigma — 💡 Revelar solución.
+❑ /ppt — ✂️📄🪨 Jugar piedra, papel o tijera.
+❑ /guerra — ⚔️ Iniciar guerra.
+❑ /4vs4 — ⚔️ Crear batalla 4 vs 4.
+❑ /6vs6 — ⚔️ Crear batalla 6 vs 6.
+❑ /12vs12 — ⚔️ Crear batalla 12 vs 12.
+❑ /16vs16 — ⚔️ Crear batalla 16 vs 16.
+╰━━━━━━━━━━━━━━━━━━━━╯
+
+╭━━〔 🫂 INTERACCIONES 〕━━╮
+❑ /hug — 🤗 Dar un abrazo.
+❑ /kiss — 😊 Dar un beso virtual.
+❑ /pat — 🫳 Dar una palmada amistosa.
+❑ /slap — ✋ Dar una bofetada virtual.
+❑ /patada — 🦵 Dar una patada virtual.
+❑ /punch — 👊 Dar un golpe virtual.
+❑ /patear — 🦵 Patear virtualmente.
+❑ /poke — 👉 Molestar amistosamente.
+❑ /tickle — 😂 Hacer cosquillas.
+❑ /cuddle — 🤗 Dar un abrazo.
+❑ /bite — 😬 Mordida virtual.
+❑ /feed — 🍔 Dar comida.
+❑ /nom — 😋 Comer.
+❑ /smile — 😊 Sonreír.
+❑ /wink — 😉 Guiñar.
+❑ /blush — 😊 Sonrojarse.
+❑ /smug — 😏 Mostrar confianza.
+❑ /happy — 😄 Mostrar felicidad.
+❑ /angry — 😠 Mostrar enojo.
+❑ /bored — 😐 Mostrar aburrimiento.
+❑ /cry — 😢 Llorar.
+❑ /laugh — 😂 Reír.
+❑ /pout — 😗 Hacer puchero.
+❑ /baka — 😅 Llamar tonto de forma juguetona.
+❑ /bonk — 🔨 Dar un golpe virtual.
+❑ /wave — 👋 Saludar.
+❑ /nod — 🙂 Asentir.
+❑ /shrug — 🤷 Encogerse de hombros.
+❑ /nope — 🙅 Decir que no.
+❑ /thumbsup — 👍 Dar aprobación.
+❑ /handshake — 🤝 Dar la mano.
+❑ /handhold — 🤝 Tomarse de la mano.
+❑ /highfive — ✋ Chocar las manos.
+❑ /dance — 💃 Bailar.
+❑ /run — 🏃 Correr.
+❑ /sleep — 😴 Dormir.
+❑ /yawn — 🥱 Bostezar.
+❑ /lurk — 👀 Observar.
+❑ /stare — 👁️ Mirar fijamente.
+❑ /think — 🤔 Pensar.
+❑ /facepalm — 🤦 Hacer facepalm.
+❑ /tableflip — 😤 Voltear la mesa virtual.
+❑ /shoot — 🎯 Disparar virtualmente.
+❑ /yeet — 🚀 Lanzar algo virtualmente.
+❑ /peck — 😊 Dar un beso rápido.
+❑ /bleh — 😛 Sacar la lengua.
+❑ /clap — 👏 Aplaudir.
+❑ /coffee — ☕ Tomar café.
+❑ /dramatic — 🎭 Hacer una reacción dramática.
+❑ /drunk — 😵 Mostrar reacción de borrachera.
+❑ /cold — 🥶 Mostrar frío.
+❑ /kisscheek — 😊 Dar un beso en la mejilla virtual.
+❑ /love — ❤️ Mostrar cariño.
+❑ /sad — 😔 Mostrar tristeza.
+❑ /scared — 😨 Mostrar miedo.
+❑ /shy — 😊 Mostrar timidez.
+❑ /smoke — 💨 Acción virtual.
+❑ /spit — 💦 Escupir virtualmente.
+❑ /step — 👣 Dar un paso.
+❑ /walk — 🚶 Caminar.
+❑ /bath — 🛁 Tomar un baño virtual.
+❑ /cringe — 😬 Mostrar vergüenza.
+❑ /lick — 👅 Acción virtual.
+❑ /scream — 😱 Gritar.
+❑ /push — 👉 Empujar virtualmente.
+❑ /jump — 🦘 Saltar.
+❑ /heat — 🔥 Mostrar calor.
+❑ /gaming — 🎮 Jugar.
+❑ /draw — 🎨 Dibujar.
+❑ /call — 📞 Llamar virtualmente.
+❑ /snuggle — 🤗 Acurrucarse virtualmente.
+❑ /blowkiss — 😘 Enviar un beso virtual.
+❑ /trip — 🤕 Tropezar.
+❑ /sniff — 👃 Oler.
+❑ /curious — 🤔 Mostrar curiosidad.
+❑ /comfort — 🤗 Consolar.
+❑ /peek — 👀 Mirar.
+❑ /bully — 😈 Molestar de forma juguetona.
+❑ /eat — 🍔 Comer.
+❑ /sing — 🎤 Cantar.
+❑ /feo — 😅 Mostrar reacción de fealdad.
+❑ /rankbromistas — 🏆 Ranking de bromistas.
+❑ /rankgay — 🏆 Ranking del grupo.
+❑ /ranklindo — 🏆 Ranking de usuarios lindos.
+❑ /rankcornudos — 🏆 Ranking del grupo.
+❑ /rankotaku — 🏆 Ranking de otakus.
+❑ /ranklesbianas — 🏆 Ranking del grupo.
+❑ /rankinfieles — 🏆 Ranking de infieles.
+❑ /rankfieles — 🏆 Ranking de fieles.
+❑ /ranktherian — 🏆 Ranking del grupo.
+╰━━━━━━━━━━━━━━━━━━━━╯
+
+╭━━〔 🤖 SUB-BOTS 〕━━╮
+❑ /subbots — 🤖 Ver sub-bots.
+❑ /maxsubbots — 🔢 Ver límite de sub-bots.
+❑ /bots — 🤖 Ver bots disponibles.
+❑ /code — 🔑 Obtener código de conexión.
+❑ /qr — 📱 Mostrar código QR.
+╰━━━━━━━━━━━━━━━━━━━━╯
+
+╭━━〔 👑 OWNER 〕━━╮
+❑ /consola — 🖥️ Abrir funciones de consola.
+❑ /reiniciar — 🔄 Reiniciar el bot.
+❑ /botoff — 🔴 Apagar el bot.
+❑ /boton — 🟢 Encender el bot.
+❑ /darcoins — 💰 Dar monedas.
+❑ /quitarcoins — 💸 Quitar monedas.
+❑ /fijarcoins — 💰 Fijar cantidad de monedas.
+❑ /Bangp — 💥 Administrar el grupo.
+❑ /setsimi — 🤖 Configurar SimSimi.
+❑ /blockuser — 🚫 Bloquear usuario.
+❑ /unblockuser — 🔓 Desbloquear usuario.
+❑ /resetperfiles — 🔄 Reiniciar perfiles.
+❑ /resetniveles — 🔄 Reiniciar niveles.
+❑ /nombrebot — 📝 Cambiar nombre del bot.
+❑ /fotomenu — 🖼️ Cambiar foto del menú.
+❑ /setprefix — 🔤 Cambiar prefijo.
+❑ /emojiresp — 😀 Configurar emoji de respuesta.
+❑ /emojimenu — 😀 Configurar emoji del menú.
+❑ /nombredinero — 💰 Cambiar nombre del dinero.
+❑ /Antillamadas — 📵 Controlar llamadas.
+❑ /antipv — 🛡️ Protección contra mensajes privados.
+❑ /antipv2 — 🛡️ Protección privada avanzada.
+❑ /readmsg — 👁️ Configurar lectura de mensajes.
+
+
+
+╰━━━━━━━━━━━━━━━━━━━━╯
+╭━━〔 🛠️ SOPORTE 〕━━╮
+❑ /sugerencia — 💡 Enviar una sugerencia al creador.
+❑ /reportar — 🚨 Reportar un problema del bot.
+╰━━━━━━━━━━━━━━━━━━━━╯
+╭━━━━━━━━━━━━━━━━━━━━╮
+┃ 🤖 𝙇𝙚𝙫𝙞𝘽𝙤𝙩
+┃ Gracias por usar el bot.
+╰━━━━━━━━━━━━━━━━━━━━╯
+`
+
+    const fotoMenu = path.join(__dirname, '../media/levibot-menu.jpg')
+
+    await sock.sendMessage(chatId, {
+      image: fs.readFileSync(fotoMenu),
+      caption: texto,
+      mentions: [sender]
+    })
+  }
+}

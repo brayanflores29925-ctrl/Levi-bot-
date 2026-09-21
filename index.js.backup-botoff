@@ -1,0 +1,463 @@
+import { manejarVistaUnica } from './viewonce.js'
+import fs from "fs"
+import path from "path"
+import pino from "pino"
+import readline from "readline"
+import chalk from "chalk"
+import { fileURLToPath } from "url"
+import { Boom } from "@hapi/boom"
+
+import * as Baileys from "@whiskeysockets/baileys"
+import { traducirTextoParaChat } from "./plugins/idioma.js"
+import { iniciarHorarioAutomatico } from './plugins/horarioauto.js'
+import { estaSilenciado } from './plugins/mute.js'
+
+const makeWASocket = typeof Baileys.default === "function" ? Baileys.default : Baileys.makeWASocket
+const useMultiFileAuthState = Baileys.useMultiFileAuthState || Baileys.default?.useMultiFileAuthState
+const DisconnectReason = Baileys.DisconnectReason
+const fetchLatestBaileysVersion = Baileys.fetchLatestBaileysVersion
+const delay = Baileys.delay || (ms => new Promise(resolve => setTimeout(resolve, ms)))
+const Browsers = Baileys.Browsers || Baileys.default?.Browsers
+
+if (typeof makeWASocket !== "function" || typeof useMultiFileAuthState !== "function") {
+  throw new Error("No se pudieron cargar los módulos principales de Baileys.")
+}
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+const SESSION_PATH = path.join(__dirname, "session")
+const PLUGINS_PATH = path.join(__dirname, "plugins")
+const PREFIXES = [".", "!", "#", "/"]
+
+let starting = false
+let reconnectTimer = null
+let currentSock = null
+
+const gold = chalk.hex('#D4AF37')
+const amber = chalk.hex('#FFBF00')
+const brown = chalk.hex('#8B5A2B')
+const warmDark = chalk.hex('#3E2723')
+const cream = chalk.hex('#F5DEB3')
+const muted = chalk.hex('#A0522D')
+
+function log(type, text) {
+  const colors = {
+    INFO: amber,
+    OK: gold,
+    WARN: brown,
+    ERROR: chalk.hex('#D32F2F')
+  }
+  const color = colors[type] || cream
+  console.log(chalk.hex('#4A3525')("[LEVI]"), color(type), text)
+}
+
+function printGoldenBanner(pairingCode = null) {
+  console.clear()
+  console.log(gold("  ══════════════════════════════════════════════════════════════"))
+  console.log(amber("   ██╗     ██xFF╗██╗██╗██╗    ██████╗  ██████╗ ████████╗"))
+  console.log(amber("   ██║     ██╔════╝██║██║██║    ██╔══██╗██╔═══██╗╚══██╔══╝"))
+  console.log(gold("   ██║     █████╗  ██║██║██║    ██████╔╝██║   ██║   ██║   "))
+  console.log(gold("   ██║     ██╔══╝  ╚██╗██╔╝    ██╔══██╗██║   ██║   ██║   "))
+  console.log(brown("   ███████╗███████╗ ╚████╔╝     ██████╔╝╚██████╔╝   ██║   "))
+  console.log(brown("   ╚══════╝╚══════╝  ╚═══╝      ╚═════╝  ╚═════╝    ╚═╝   "))
+  console.log(gold("  ══════════════════════════════════════════════════════════════"))
+  console.log(cream("               Never a frown with Golden Brown..."))
+  console.log(muted("  ──────────────────────────────────────────────────────────────"))
+
+  if (pairingCode) {
+    console.log("")
+    console.log(warmDark("  ┌──────────────────────────────────────────────────────────┐"))
+    console.log(`  │  ${gold("CÓDIGO DE VINCULACIÓN:")}  ${amber.bold(pairingCode.padEnd(28))} │`)
+    console.log(warmDark("  ├──────────────────────────────────────────────────────────┤"))
+    console.log(`  │  ${cream("WhatsApp")} → ${cream("Dispositivos vinculados")} → ${gold("Vincular con número")}│`)
+    console.log(warmDark("  └──────────────────────────────────────────────────────────┘"))
+    console.log("")
+  }
+}
+
+function ensureFolders() {
+  if (!fs.existsSync(SESSION_PATH)) fs.mkdirSync(SESSION_PATH, { recursive: true })
+  if (!fs.existsSync(PLUGINS_PATH)) fs.mkdirSync(PLUGINS_PATH, { recursive: true })
+}
+
+function askNumber() {
+  return new Promise(resolve => {
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout
+    })
+    console.log("")
+    rl.question(
+      gold("  [LEVI] ") + cream("Ingresa tu número de WhatsApp (con código de país):\n") +
+      brown("  [Ejemplo: 573005255807] → "),
+      answer => {
+        rl.close()
+        resolve(answer.replace(/\D/g, "").trim())
+      }
+    )
+  })
+}
+
+async function loadPlugins(sock) {
+  sock.commands = new Map()
+  if (!fs.existsSync(PLUGINS_PATH)) return
+
+  const files = fs.readdirSync(PLUGINS_PATH)
+    .filter(file => file.endsWith(".js"))
+    .filter(file => ![
+      "subbotcore.js",
+      "subbotconexion.js",
+      "subbotmanager.js",
+      "horarioauto.js"
+    ].includes(file))
+
+  for (const file of files) {
+    try {
+      const module = await import(`file://${path.join(PLUGINS_PATH, file)}?v=${Date.now()}`)
+      const command = module.default
+
+      if (!command || !command.name || typeof command.execute !== "function") {
+        log("WARN", `Plugin omitido (estructura inválida): ${file}`)
+        continue
+      }
+
+      const names = Array.isArray(command.name) ? command.name : [command.name]
+      for (const name of names) {
+        sock.commands.set(name.toLowerCase(), command)
+      }
+
+      if (Array.isArray(command.aliases)) {
+        for (const alias of command.aliases) {
+          sock.commands.set(alias.toLowerCase(), command)
+        }
+      }
+      if (typeof command.register === "function") {
+        command.register(sock)
+      }
+
+      log("OK", `Plugin activo: ${file}`)
+    } catch (error) {
+      log("ERROR", `Error cargando plugin ${file}: ${error.message}`)
+    }
+  }
+  log("INFO", `Total de comandos listos: ${sock.commands.size}`)
+}
+
+async function createSocket(state) {
+  let version
+  try {
+    if (typeof fetchLatestBaileysVersion === "function") {
+      const result = await fetchLatestBaileysVersion()
+      version = result?.version
+    }
+  } catch {
+    log("WARN", "Usando versión predeterminada de WhatsApp.")
+  }
+
+  const options = {
+    auth: state,
+    logger: pino({ level: "silent" }),
+    browser: Browsers ? Browsers.ubuntu("Chrome") : ["Ubuntu", "Chrome", "110.0.5563.146"],
+    printQRInTerminal: false,
+    markOnlineOnConnect: true,
+    syncFullHistory: false,
+    generateHighQualityLinkPreview: false,
+    connectTimeoutMs: 60000,
+    defaultQueryTimeoutMs: 60000,
+    keepAliveIntervalMs: 30000
+  }
+
+  if (version) options.version = version
+
+  return makeWASocket(options)
+}
+
+function setupSocket(sock) {
+  const sendMessageOriginal = sock.sendMessage.bind(sock)
+
+  sock.sendMessage = async (jid, content, options) => {
+    try {
+      if (
+        jid?.endsWith("@g.us") &&
+        content?.text &&
+        typeof content.text === "string"
+      ) {
+        const textoTraducido = await traducirTextoParaChat(
+          jid,
+          content.text
+        )
+
+        content = {
+          ...content,
+          text: textoTraducido
+        }
+      }
+    } catch {
+      // Si falla la traducción, se envía el mensaje original.
+    }
+
+    return sendMessageOriginal(jid, content, options)
+  }
+  sock.ev.on("connection.update", async update => {
+    const { connection, lastDisconnect } = update
+
+    if (connection === "connecting") {
+      log("INFO", "Sincronizando con los servidores de WhatsApp...")
+    }
+
+    if (connection === "open") {
+      log("OK", "Conexión establecida con éxito.")
+      
+      // Se ejecutan y cargan todos tus comandos
+      await loadPlugins(sock)
+      
+      iniciarHorarioAutomatico(sock)
+      log("OK", "LEVI BOT ONLINE Y OPERATIVO.")
+    }
+
+    if (connection === "close") {
+      const status = new Boom(lastDisconnect?.error)?.output?.statusCode
+      log("WARN", `Conexión suspendida (Estado: ${status || "Desconocido"})`)
+
+      if (status === DisconnectReason.loggedOut || status === 401) {
+        log("WARN", "Sesión expirada o vinculación removida.")
+        fs.rmSync(SESSION_PATH, { recursive: true, force: true })
+        ensureFolders()
+        log("INFO", "Carpeta de sesión reiniciada. Ejecuta de nuevo para revincular.")
+        return
+      }
+
+      if (reconnectTimer) clearTimeout(reconnectTimer)
+      reconnectTimer = setTimeout(() => {
+        reconnectTimer = null
+        startLevi()
+      }, 3000)
+    }
+  })
+
+  sock.ev.on("messages.upsert", async ({ messages }) => {
+    try {
+      const m = messages?.[0]
+      if (!m?.message || m.key?.fromMe) return
+
+      const chatId = m.key?.remoteJid
+      const sender = m.key?.participant || m.participant || chatId
+
+      // 🧠 Historial temporal para el detector de bots
+      if (chatId?.endsWith("@g.us") && sender) {
+        const historial = sock.botDetectionHistory || new Map()
+        sock.botDetectionHistory = historial
+
+        const claveHistorial = `${chatId}:${sender}`
+        const lista = historial.get(claveHistorial) || []
+
+        const textoHistorial =
+          m.message?.conversation ||
+          m.message?.extendedTextMessage?.text ||
+          m.message?.imageMessage?.caption ||
+          m.message?.videoMessage?.caption ||
+          ""
+
+        if (textoHistorial) {
+          lista.push({
+            texto: textoHistorial.slice(0, 500),
+            tiempo: Date.now()
+          })
+
+          while (lista.length > 5) {
+            lista.shift()
+          }
+
+          historial.set(claveHistorial, lista)
+        }
+      }
+
+      if (
+        chatId?.endsWith('@g.us') &&
+        sender &&
+        estaSilenciado(chatId, sender)
+      ) {
+        try {
+          await sock.sendMessage(chatId, {
+            delete: m.key
+          })
+        } catch (error) {
+          log("WARN", `No se pudo eliminar mensaje del usuario silenciado: ${error.message}`)
+        }
+        return
+      }
+
+      await manejarVistaUnica(sock, m)
+
+      let text =
+        m.message.conversation ||
+        m.message.extendedTextMessage?.text ||
+        m.message.imageMessage?.caption ||
+        m.message.videoMessage?.caption ||
+        ""
+
+      let interactive = false
+      const native = m.message.interactiveResponseMessage
+      const buttons = m.message.buttonsResponseMessage
+
+      if (native) {
+        interactive = true
+        try {
+          const params = native?.nativeFlowResponseMessage?.paramsJson
+          if (params) {
+            const data = JSON.parse(params)
+            text = data.id || data.selectedId || data.buttonId || ""
+          }
+        } catch {
+          return
+        }
+      }
+
+      if (buttons) {
+        interactive = true
+        text = buttons.selectedButtonId || ""
+      }
+
+      if (!text) return
+
+      const prefix = PREFIXES.find(p => text.startsWith(p))
+      if (!prefix && !interactive) return
+
+      const body = prefix ? text.slice(prefix.length).trim() : text.trim()
+      if (!body) return
+
+      const parts = body.split(/\s+/)
+      const commandName = parts.shift()?.toLowerCase()
+      if (!commandName) return
+
+      // 🛡️ Detector de bots no autorizados
+      if (commandName === "menu" && chatId?.endsWith("@g.us")) {
+        try {
+          const detector = sock.commands?.get("botnoautorizado")
+
+          if (detector?.ejecutar && sender) {
+            const botJid = sock.user?.id?.split(":")[0] + "@s.whatsapp.net"
+
+            // LeviBot nunca se detecta ni se expulsa a sí mismo
+            if (sender !== botJid) {
+              await detector.ejecutar(sock, chatId, sender, text)
+            }
+          }
+        } catch (error) {
+          log("WARN", `Error en detector de bots: ${error.message}`)
+        }
+      }
+
+      if ((commandName === "1" || commandName === "2") && sock.playSelection) {
+        return await sock.playSelection(m, commandName)
+      }
+
+      const command = sock.commands?.get(commandName)
+      
+if (!command) {
+        const ayuda = sock.commands?.get("comandoayuda")
+        if (ayuda) {
+          return await ayuda.execute(sock, m, [commandName, ...parts], enviar)
+        }
+        return
+      }
+
+      const enviar = (message, options = {}) => {
+        return sock.sendMessage(m.key.remoteJid, { text: message, ...options }, { quoted: m })
+      }
+
+      // 🚦 Límite de comandos: 10 cada 15 minutos
+      const antispam = sock.commands?.get("antispamcomandos")
+
+      if (antispam?.puedeUsar && sender) {
+        const control = antispam.puedeUsar(chatId, sender)
+
+        if (!control.permitido) {
+          const minutos = Math.ceil(control.restante / 60000)
+
+          return enviar(
+            `⏳ *LÍMITE DE COMANDOS*\n\n` +
+            `Has alcanzado el límite de *10 comandos cada 15 minutos*.\n\n` +
+            `🕐 Podrás volver a usar comandos en aproximadamente *${minutos} minuto(s)*.`
+          )
+        }
+      }
+
+      await command.execute(sock, m, parts, enviar)
+    } catch (error) {
+      log("ERROR", `Excepción en comando: ${error.message}`)
+    }
+  })
+
+  sock.ev.on("group.join-request", async (evento) => {
+    try {
+      const auto = sock.commands?.get("autosolicitudes")
+      if (!auto?.manejarSolicitud) return
+
+      await auto.manejarSolicitud(sock, evento)
+    } catch (error) {
+      log("ERROR", `Error procesando solicitud de ingreso: ${error.message}`)
+    }
+  })
+}
+
+async function startLevi() {
+  if (starting) return
+  starting = true
+
+  try {
+    ensureFolders()
+    printGoldenBanner()
+
+    const credsPath = path.join(SESSION_PATH, "creds.json")
+    const hasSession = fs.existsSync(credsPath)
+
+    const { state, saveCreds } = await useMultiFileAuthState(SESSION_PATH)
+    const sock = await createSocket(state)
+    currentSock = sock
+
+    sock.ev.on("creds.update", saveCreds)
+    setupSocket(sock)
+
+    if (!hasSession && !sock.authState?.creds?.registered) {
+      const phone = await askNumber()
+
+      if (!phone || phone.length < 10) {
+        log("ERROR", "Número no válido.")
+        starting = false
+        return
+      }
+
+      log("INFO", "Solicitando pairing code...")
+      await delay(3000)
+
+      const code = await sock.requestPairingCode(phone)
+      const formatted = String(code)?.match(/.{1,4}/g)?.join("-") || code
+
+      printGoldenBanner(formatted)
+    }
+
+  } catch (error) {
+    log("ERROR", `Fallo en el arranque: ${error.message}`)
+    if (reconnectTimer) clearTimeout(reconnectTimer)
+    reconnectTimer = setTimeout(() => {
+      reconnectTimer = null
+      startLevi()
+    }, 5000)
+  } finally {
+    starting = false
+  }
+}
+
+process.once("SIGINT", () => {
+  log("WARN", "Apagando Levi Bot...")
+  process.exit(0)
+})
+
+process.once("SIGTERM", () => {
+  log("WARN", "Apagando Levi Bot...")
+  process.exit(0)
+})
+
+startLevi()
