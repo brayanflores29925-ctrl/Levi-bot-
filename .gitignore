@@ -10,3 +10,5 @@ sessions/
 
 # Sesiones privadas de subbots
 data/subbots/
+
+temp/
