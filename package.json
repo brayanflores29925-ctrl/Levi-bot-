@@ -4,6 +4,9 @@
   "description": "Levi-Bot con conexión por parincode (Baileys 2025)",
   "main": "index.js",
   "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.124.0",
     "@hapi/boom": "^10.0.1",
