@@ -49,6 +49,7 @@ https://chat.whatsapp.com/EIUm1G9DrrzB440yROjOEq
 
 ╭━━〔 👤 PERFILES 〕━━╮
 ❑ /perfil — 👤 Ver tu perfil.
+❑ /info2 — ℹ️ Información de Levi Bots.
 ❑ /casarse — 💍 Casarte con otro usuario.
 ❑ /divorcio — 💔 Terminar un matrimonio.
 ❑ /setdesc — 📝 Establecer tu descripción.
@@ -68,6 +69,7 @@ https://chat.whatsapp.com/EIUm1G9DrrzB440yROjOEq
 ╭━━〔 🛡️ ADMINISTRACIÓN 〕━━╮
 ❑ /configp — ⚙️ Configurar el grupo.
 ❑ /status — 📊 Ver el estado del grupo.
+❑ /fuera — 👋 Expulsar reaccionando con 👋 a un mensaje.
 ❑ /autosolicitudes — 🤖 Aceptar solicitudes automáticamente.
 ❑ /Adv — ⚠️ Dar una advertencia.
 ❑ /antilink2 — 🔗 Control de enlaces permitidos.
@@ -94,6 +96,7 @@ https://chat.whatsapp.com/EIUm1G9DrrzB440yROjOEq
 ❑ /Leveling — ⭐ Activar sistema de niveles.
 ❑ /del — 🗑️ Elimina un mensaje respondiéndolo con este comando.
 ❑ /Modorpg — 🎮 Activar modo RPG.
+❑ /mute2 — 🔇 Silenciar temporalmente a un usuario.
 ❑ /creartorneo — 🏆 Crear un torneo.
 ❑ /modoadmin — 🛡️ Activar modo administrador.
 ❑ /Multiprefijo — 🔤 Activar varios prefijos.
@@ -191,7 +194,11 @@ https://chat.whatsapp.com/EIUm1G9DrrzB440yROjOEq
 ❑ /playdoc — 📄 Descargar audio como documento.
 ❑ /playvideo — 🎥 Descargar video.
 ❑ /ytsearch — 🔎 Buscar videos en YouTube.
+❑ /buscar — 🌐 Buscar información y contenido.
+❑ /google — 🔎 Buscar en Google.
+❑ /buscar — 🌐 Buscar información y contenido.
 ❑ /tiktok — 📱 Descargar contenido de TikTok.
+❑ /tiktok2 — 🔎 Buscar y descargar videos de TikTok por nombre.
 ❑ /x — 📥 Descargar contenido compatible.
 ❑ /Instagram — 📸 Descargar contenido de Instagram.
 ❑ /facebook — 📘 Descargar contenido de Facebook.
@@ -204,7 +211,6 @@ https://chat.whatsapp.com/EIUm1G9DrrzB440yROjOEq
 ❑ /simi — 🤖 Chatear con SimSimi.
 ❑ /chatgpt — 🤖 Consultar a ChatGPT.
 ❑ /llama — 🦙 Consultar IA Llama.
-❑ /google — 🔎 Buscar en Google.
 ❑ /wikipedia — 📚 Buscar en Wikipedia.
 ❑ /clima — 🌤️ Consultar el clima.
 ❑ /mareas — 🌊 Consultar las mareas.
@@ -232,6 +238,7 @@ https://chat.whatsapp.com/EIUm1G9DrrzB440yROjOEq
 ❑ /attp2 — ✍️ Crear otro sticker de texto.
 ❑ /attp3 — ✍️ Crear otro estilo de texto.
 ❑ /sticker — 🖼️ Crear sticker.
+❑ .s — 🖼️ Convertir una foto en sticker.
 ❑ /sticker2 — 🖼️ Crear sticker alternativo.
 ❑ /emojimix — 😀 Combinar emojis.
 ❑ /setsticker — 📌 Guardar sticker.
@@ -412,6 +419,9 @@ https://chat.whatsapp.com/EIUm1G9DrrzB440yROjOEq
 ╭━━〔 👑 OWNER 〕━━╮
 ❑ /consola — 🖥️ Abrir funciones de consola.
 ❑ /reiniciar — 🔄 Reiniciar el bot.
+❑ /actualizar — 🔄 Actualizar LeviBot a la última versión.
+❑ /fix — 🛠️ Diagnosticar problemas de LeviBot.
+❑ /actualizar — 🔄 Actualizar LeviBot a la última versión.
 ❑ /botoff — 🔴 Apagar el bot.
 ❑ /boton — 🟢 Encender el bot.
 ❑ /darcoins — 💰 Dar monedas.

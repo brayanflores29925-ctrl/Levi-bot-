@@ -286,10 +286,10 @@ export default {
     if (cantidad === 1) {
       await sock.sendMessage(chatId, {
         text:
-          `⚠️ *ADVERTENCIA 1/2*\n\n` +
+          `⚠️ *ADVERTENCIA ${cantidad}/5*\n\n` +
           `@${usuarioBase}, se detectó actividad que parece corresponder a un bot no autorizado.\n\n` +
           `🤖 *Análisis:* ${analisis.motivo}\n\n` +
-          `⚠️ Una segunda detección confirmada provocará tu eliminación del grupo.`,
+          `⚠️ Al llegar a 5 detecciones confirmadas serás eliminado del grupo.`,
         mentions: [usuario]
       })
 
@@ -297,7 +297,7 @@ export default {
     }
 
     // 🚫 Segunda detección
-    if (cantidad >= 2) {
+    if (cantidad >= 5) {
       try {
         await sock.groupParticipantsUpdate(
           chatId,

@@ -2,6 +2,7 @@ import { downloadContentFromMessage } from '@whiskeysockets/baileys'
 
 export default {
   name: 'sticker',
+  aliases: ['s'],
 
   async execute(sock, m, parts, enviar) {
     const chatId = m.key?.remoteJid

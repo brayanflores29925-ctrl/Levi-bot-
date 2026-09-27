@@ -36,10 +36,10 @@ export default {
     if (!usuario || !cantidad || cantidad < 1) {
       return sock.sendMessage(chatId, {
         text:
-          '❌ Uso correcto:\\n\\n' +
-          '/ban @usuario 5\\n' +
-          '/ban @usuario 10\\n\\n' +
-          'También puedes responder a un mensaje y usar:\\n' +
+          '❌ Uso correcto:\n\n' +
+          '/ban @usuario 5\n' +
+          '/ban @usuario 10\n\n' +
+          'También puedes responder a un mensaje y usar:\n' +
           '/ban 5'
       })
     }
@@ -58,12 +58,6 @@ export default {
       .slice(-cantidad)
       .reverse()
 
-    if (!objetivos.length) {
-      return sock.sendMessage(chatId, {
-        text: '⚠️ No encontré mensajes registrados de esa persona.'
-      })
-    }
-
     let borrados = 0
 
     for (const mensaje of objetivos) {
@@ -78,11 +72,33 @@ export default {
         })
 
         borrados++
-      } catch {}
+      } catch (error) {
+        console.log(`⚠️ No se pudo borrar ${mensaje.id}: ${error.message}`)
+      }
+    }
+
+    try {
+      await sock.groupParticipantsUpdate(
+        chatId,
+        [usuario],
+        'remove'
+      )
+    } catch (error) {
+      return sock.sendMessage(chatId, {
+        text:
+          `🗑️ Mensajes borrados: ${borrados}\n` +
+          `❌ No pude expulsar al usuario.\n\n` +
+          `Verifica que Levi-Bot sea administrador del grupo.`
+      })
     }
 
     await sock.sendMessage(chatId, {
-      text: `🗑️ Se intentaron borrar ${borrados} de ${cantidad} mensajes de la persona mencionada.`
+      text:
+        `🔨 *BAN EJECUTADO*\n\n` +
+        `👤 Usuario: @${usuario.split('@')[0]}\n` +
+        `🗑️ Mensajes borrados: ${borrados}/${cantidad}\n` +
+        `🚫 Usuario expulsado del grupo.`,
+      mentions: [usuario]
     })
   }
 }

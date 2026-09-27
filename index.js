@@ -14,6 +14,22 @@ import { traducirTextoParaChat } from "./plugins/idioma.js"
 import { iniciarHorarioAutomatico } from './plugins/horarioauto.js'
 import { estaSilenciado } from './plugins/mute.js'
 import { getDB } from './database.js'
+import { iniciarSubbotsGuardados } from './plugins/subbotarranque.js'
+import { enviarAnimacion } from "./plugins/animaciones.js"
+
+const COMANDOS_ANIMADOS = new Set([
+  'hug','kiss','pat','slap','patada','punch','patear','poke','tickle',
+  'cuddle','bite','feed','nom','smile','wink','blush','smug','happy',
+  'angry','bored','cry','laugh','pout','baka','bonk','wave','nod',
+  'shrug','nope','thumbsup','handshake','handhold','highfive','dance',
+  'run','sleep','yawn','lurk','stare','think','facepalm','tableflip',
+  'shoot','yeet','peck','bleh','clap','coffee','dramatic','drunk',
+  'cold','kisscheek','love','sad','scared','shy','smoke','spit',
+  'step','walk','bath','cringe','lick','scream','push','jump','heat',
+  'gaming','draw','call','snuggle','blowkiss','trip','sniff','curious',
+  'comfort','peek','bully','eat','sing','feo'
+])
+
 
 const makeWASocket = typeof Baileys.default === "function" ? Baileys.default : Baileys.makeWASocket
 const useMultiFileAuthState = Baileys.useMultiFileAuthState || Baileys.default?.useMultiFileAuthState
@@ -208,6 +224,27 @@ async function reaccionar(sock, m, emoji) {
   }
 }
 
+
+function obtenerObjetivo(m) {
+  const ctx =
+    m.message?.extendedTextMessage?.contextInfo ||
+    m.message?.imageMessage?.contextInfo ||
+    m.message?.videoMessage?.contextInfo ||
+    m.message?.documentMessage?.contextInfo ||
+    {}
+
+  const mencionado =
+    ctx.mentionedJid?.[0] ||
+    m.mentionedJid?.[0] ||
+    null
+
+  if (mencionado) return mencionado
+
+  if (ctx.participant) return ctx.participant
+
+  return null
+}
+
 function setupSocket(sock) {
   const sendMessageOriginal = sock.sendMessage.bind(sock)
 
@@ -225,7 +262,9 @@ function setupSocket(sock) {
 
         content = {
           ...content,
-          text: textoTraducido
+          text:
+            "🛡️ *LEVI BOTS ✓ VERIFICADO*\\n\\n" +
+            textoTraducido
         }
       }
     } catch {
@@ -242,6 +281,19 @@ function setupSocket(sock) {
     }
 
     if (connection === "open") {
+      fs.appendFileSync("conexion.log", `[${new Date().toISOString()}] OPEN - WhatsApp conectado\n`)
+      fs.writeFileSync("heartbeat.status", `OPEN ${new Date().toISOString()}\n`)
+
+      if (globalThis.leviHeartbeatTimer) {
+        clearInterval(globalThis.leviHeartbeatTimer)
+      }
+
+      globalThis.leviHeartbeatTimer = setInterval(() => {
+        try {
+          fs.writeFileSync("heartbeat.status", `HEARTBEAT ${new Date().toISOString()}\n`)
+        } catch {}
+      }, 30000)
+
       log("OK", "Conexión establecida con éxito.")
       
       // Se ejecutan y cargan todos tus comandos
@@ -252,8 +304,23 @@ function setupSocket(sock) {
     }
 
     if (connection === "close") {
-      const status = new Boom(lastDisconnect?.error)?.output?.statusCode
-      log("WARN", `Conexión suspendida (Estado: ${status || "Desconocido"})`)
+      // Ignorar cierres de sockets antiguos para evitar reconexiones duplicadas
+      if (currentSock !== sock) {
+        log("WARN", "Cierre de una conexión anterior ignorado.")
+        return
+      }
+
+      currentSock = null
+
+      const error = lastDisconnect?.error
+      const status = new Boom(error)?.output?.statusCode
+      const errorName = error?.name || "Desconocido"
+      const errorMessage = error?.message || "Sin mensaje"
+      fs.appendFileSync(
+        "conexion.log",
+        `[${new Date().toISOString()}] CLOSE - Estado: ${status || "Desconocido"} - Error: ${errorName} - Mensaje: ${errorMessage}\n`
+      )
+      log("WARN", `Conexión suspendida (Estado: ${status || "Desconocido"}) - ${errorName}: ${errorMessage}`)
 
       if (status === DisconnectReason.loggedOut || status === 401) {
         log("WARN", "Sesión expirada o vinculación removida.")
@@ -263,11 +330,18 @@ function setupSocket(sock) {
         return
       }
 
-      if (reconnectTimer) clearTimeout(reconnectTimer)
-      reconnectTimer = setTimeout(() => {
-        reconnectTimer = null
-        startLevi()
-      }, 3000)
+      // Programar una sola reconexión para evitar conexiones duplicadas
+      if (!reconnectTimer) {
+        reconnectTimer = setTimeout(async () => {
+          reconnectTimer = null
+
+          try {
+            await startLevi()
+          } catch (error) {
+            log("ERROR", `Error durante la reconexión: ${error.message}`)
+          }
+        }, 5000)
+      }
     }
   })
 
@@ -278,6 +352,120 @@ function setupSocket(sock) {
 
       const chatId = m.key?.remoteJid
       const sender = m.key?.participant || m.participant || chatId
+
+      // 🎯 Objetivo central: mención, respuesta o reacción
+      m.target = obtenerObjetivo(m)
+
+      // ⚡ Si no hay mención/respuesta, usar el último mensaje reaccionado
+      if (!m.target && sock.reactionTargets) {
+        const reactionData = sock.reactionTargets.get(
+          `${chatId}:${sender}`
+        )
+
+        if (reactionData) {
+          // ⏱️ La reacción es válida durante 5 minutos
+          const vigente =
+            Date.now() - reactionData.timestamp <= 5 * 60 * 1000
+
+          if (vigente) {
+            m.target = reactionData.target
+          } else {
+            sock.reactionTargets.delete(
+              `${chatId}:${sender}`
+            )
+          }
+        }
+      }
+
+      // 🔗 Compatibilidad: los comandos que usan mentionedJid
+      // también podrán trabajar respondiendo al mensaje del usuario
+      if (m.target) {
+        const ctx =
+          m.message?.extendedTextMessage?.contextInfo ||
+          m.message?.imageMessage?.contextInfo ||
+          m.message?.videoMessage?.contextInfo ||
+          m.message?.documentMessage?.contextInfo ||
+          {}
+
+        const menciones = ctx.mentionedJid || m.mentionedJid || []
+
+        if (menciones.length > 0) {
+          m.mentionedJid = menciones
+        } else {
+          m.mentionedJid = [m.target]
+        }
+      }
+
+      // 👋 FUERA — expulsar al autor del mensaje reaccionado
+      if (
+        chatId?.endsWith("@g.us") &&
+        m.message?.reactionMessage
+      ) {
+        try {
+          const reaccion = m.message.reactionMessage
+          const emoji = reaccion.text
+          const mensajeReaccionado = reaccion.key
+          const reactor = sender
+
+          // 🎯 Objetivo global de reacción
+          // Guarda al autor del mensaje reaccionado para que
+          // el siguiente comando del mismo usuario pueda usarlo.
+          if (mensajeReaccionado?.participant) {
+            if (!sock.reactionTargets) {
+              sock.reactionTargets = new Map()
+            }
+
+            sock.reactionTargets.set(
+              `${chatId}:${reactor}`,
+              {
+                target: mensajeReaccionado.participant,
+                timestamp: Date.now()
+              }
+            )
+          }
+
+          if (emoji === "👋" && mensajeReaccionado?.participant) {
+            const metadata = await sock.groupMetadata(chatId)
+
+            const reactorInfo = metadata.participants.find(
+              p => p.id === reactor
+            )
+
+            const reactorIsAdmin =
+              reactorInfo?.admin === "admin" ||
+              reactorInfo?.admin === "superadmin"
+
+            if (reactorIsAdmin) {
+              const objetivo = mensajeReaccionado.participant
+
+              const objetivoInfo = metadata.participants.find(
+                p => p.id === objetivo
+              )
+
+              const objetivoIsAdmin =
+                objetivoInfo?.admin === "admin" ||
+                objetivoInfo?.admin === "superadmin"
+
+              if (!objetivoIsAdmin && objetivo !== sock.user?.id) {
+                await sock.groupParticipantsUpdate(
+                  chatId,
+                  [objetivo],
+                  "remove"
+                )
+
+                await sock.sendMessage(chatId, {
+                  text:
+                    `👋 @${objetivo.split("@")[0]} fue expulsado del grupo.`,
+                  mentions: [objetivo]
+                })
+              }
+            }
+          }
+        } catch (error) {
+          log("WARN", `Error en reacción /fuera: ${error.message}`)
+        }
+      }
+
       console.log("[SANTE TEST] Sender:", sender)
       guardarMensaje(m)
 
@@ -307,6 +495,24 @@ function setupSocket(sock) {
           }
 
           historial.set(claveHistorial, lista)
+        }
+
+        // 🤖 Detector automático de bots no autorizados
+        if (textoHistorial) {
+          try {
+            const detector = sock.commands?.get("botnoautorizado")
+
+            if (detector?.ejecutar) {
+              await detector.ejecutar(
+                sock,
+                chatId,
+                sender,
+                textoHistorial
+              )
+            }
+          } catch (error) {
+            log("WARN", `Error en detector automático de bots: ${error.message}`)
+          }
         }
       }
 
@@ -465,10 +671,18 @@ function setupSocket(sock) {
         if (!text.startsWith(p)) return false
         return text.slice(p.length).trim().length > 0
       })
-      if (!prefix && !interactive) return
 
       const body = prefix ? text.slice(prefix.length).trim() : text.trim()
       if (!body) return
+
+      // 🆓 Permitir comandos sin prefijo cuando el nombre
+      // coincide exactamente con un comando registrado.
+      if (!prefix && !interactive) {
+        const possibleCommand = body.split(/\s+/)[0]?.toLowerCase()
+        const commandExists = sock.commands?.has(possibleCommand)
+
+        if (!commandExists) return
+      }
 
       const parts = body.split(/\s+/)
       const commandName = parts.shift()?.toLowerCase()
@@ -563,6 +777,11 @@ function setupSocket(sock) {
 
       try {
         await command.execute(sock, m, parts, enviar)
+
+        const comandoAnimado = String(commandName || "").toLowerCase()
+        if (COMANDOS_ANIMADOS.has(comandoAnimado)) {
+          await enviarAnimacion(sock, chatId, comandoAnimado)
+        }
         await reaccionar(sock, m, "✅")
       } catch (error) {
         await reaccionar(sock, m, "❌")
@@ -637,6 +856,7 @@ async function startLevi() {
 
     sock.ev.on("creds.update", saveCreds)
     setupSocket(sock)
+    await iniciarSubbotsGuardados()
 
     if (!hasSession && !sock.authState?.creds?.registered) {
       const phone = await askNumber()

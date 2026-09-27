@@ -2,7 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import pino from 'pino'
 import * as Baileys from '@whiskeysockets/baileys'
-import { obtenerSubbots, MAX_SUBBOTS } from './subbotmanager.js'
+import { obtenerSubbots, MAX_SUBBOTS, agregarSubbot } from './subbotmanager.js'
 import { vigilarSubbot } from './subbotconexion.js'
 import { cargarComandosSubbot, activarComandosSubbot } from './subbotcore.js'
 
@@ -182,6 +182,18 @@ export default {
         onOpen: () => {
           vinculado = true
 
+          const registro = agregarSubbot(numero)
+
+          if (!registro.ok) {
+            console.log(
+              `[LEVI CODE] No se pudo registrar el Sub-Bot ${numero}: ${registro.motivo}`
+            )
+          } else {
+            console.log(
+              `[LEVI CODE] Sub-Bot ${numero} registrado correctamente.`
+            )
+          }
+
           if (temporizador) {
             clearTimeout(temporizador)
             temporizador = null
@@ -217,18 +229,6 @@ export default {
       const codigo =
         String(code).match(/.{1,4}/g)?.join('-') ||
         String(code)
-
-      const datos = [
-        ...subbots,
-        {
-          numero,
-          carpeta,
-          agregado: new Date().toISOString(),
-          activo: false
-        }
-      ]
-
-      guardar(datos)
 
       const jid = m.key.remoteJid
 

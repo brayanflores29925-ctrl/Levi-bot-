@@ -3,6 +3,7 @@ import { execFile } from 'child_process'
 import { promisify } from 'util'
 import fs from 'fs'
 import path from 'path'
+import * as Baileys from '@whiskeysockets/baileys'
 
 const execFileAsync = promisify(execFile)
 const pendientes = new Map()
@@ -32,7 +33,7 @@ export default {
       return enviar(
         '⚠️ *PLAY - DESCARGADOR*\n\n' +
         'Escribe el nombre de una canción o vídeo.\n\n' +
-        '📌 *Ejemplo:* .play Sweat Weather'
+        '📌 *Ejemplo:* .play Feliz Navidad'
       )
     }
 
@@ -46,6 +47,8 @@ export default {
         return enviar('❌ No se encontraron resultados.')
       }
 
+      console.log('[PLAY DEBUG] ytSearch OK:', video.url)
+
       pendientes.set(chatId, {
         url: video.url,
         title: video.title
@@ -54,7 +57,9 @@ export default {
       const titulo = video.title
       const canal = video.author?.name || 'Desconocido'
       const duracion = video.timestamp || 'N/A'
-      const vistas = video.views ? Number(video.views).toLocaleString() : 'N/A'
+      const vistas = video.views
+        ? Number(video.views).toLocaleString()
+        : 'N/A'
 
       const textoDetalle =
         '╭━━━━━━━━━━━━━━━━━━━━╮\n' +
@@ -64,11 +69,53 @@ export default {
         `👤 *Canal:* ${canal}\n` +
         `⏱️ *Duración:* ${duracion}\n` +
         `👁️ *Vistas:* ${vistas}\n\n` +
-        '👇 *Responde con una opción:*\n\n' +
-        '🎬 *.1* → Descargar Vídeo MP4\n' +
-        '🎧 *.2* → Descargar Audio MP3'
+        '👇 *Selecciona qué deseas descargar:*'
 
-      return await enviar(textoDetalle)
+      try {
+        const miniatura = video.thumbnail
+
+        const mensajePortada =
+          `${textoDetalle.replace(
+            '👇 *Selecciona qué deseas descargar:*',
+            '👇 *Elige el formato de descarga:*'
+          )}\n\n` +
+          '🎬 *.1* → Descargar Vídeo MP4\n' +
+          '🎧 *.2* → Descargar Audio MP3'
+
+        if (miniatura) {
+          await sock.sendMessage(
+            chatId,
+            {
+              image: { url: miniatura },
+              caption: mensajePortada
+            },
+            { quoted: m }
+          )
+        } else {
+          await sock.sendMessage(
+            chatId,
+            {
+              text: mensajePortada
+            },
+            { quoted: m }
+          )
+        }
+
+        console.log('[PLAY] Portada y menú de texto enviados correctamente.')
+        return
+
+      } catch (errorMenu) {
+        console.error(
+          '[PLAY] Error enviando menú interactivo:',
+          errorMenu
+        )
+
+        return enviar(
+          `${textoDetalle}\n\n` +
+          '🎬 *.1* → Descargar Vídeo MP4\n' +
+          '🎧 *.2* → Descargar Audio MP3'
+        )
+      }
 
     } catch (error) {
       console.error('[LEVI] ERROR /play:', error)
@@ -96,9 +143,17 @@ export default {
     let esVideo = false
     let esAudio = false
 
-    if (opcionFinal === '.1' || opcionFinal === '1') {
+    if (
+      opcionFinal === '.1' ||
+      opcionFinal === '1' ||
+      opcionFinal.includes('1.')
+    ) {
       esVideo = true
-    } else if (opcionFinal === '.2' || opcionFinal === '2') {
+    } else if (
+      opcionFinal === '.2' ||
+      opcionFinal === '2' ||
+      opcionFinal.includes('2.')
+    ) {
       esAudio = true
     } else {
       return sock.sendMessage(
@@ -106,8 +161,8 @@ export default {
         {
           text:
             '⚠️ *Opción incorrecta*\n\n' +
-            '🎬 *.1* = Descargar Vídeo\n' +
-            '🎧 *.2* = Descargar Audio'
+            '🎬 Vídeo\n' +
+            '🎧 Audio'
         },
         { quoted: m }
       )
@@ -115,9 +170,23 @@ export default {
 
     pendientes.delete(chatId)
 
-    const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`
-    const extension = esVideo ? 'mp4' : 'mp3'
-    const output = path.join(TEMP_DIR, `play-${id}.${extension}`)
+    const id =
+      `${Date.now()}-${Math.random().toString(36).slice(2)}`
+
+    const videoTemp = path.join(
+      TEMP_DIR,
+      `play-${id}-video.mp4`
+    )
+
+    const audioTemp = path.join(
+      TEMP_DIR,
+      `play-${id}-audio.m4a`
+    )
+
+    const output = path.join(
+      TEMP_DIR,
+      `play-${id}.${esVideo ? 'mp4' : 'mp3'}`
+    )
 
     try {
       await sock.sendMessage(
@@ -131,12 +200,14 @@ export default {
       )
 
       if (esVideo) {
+        console.log('[PLAY] Descargando vídeo 134...')
+
         await execFileAsync(
           'yt-dlp',
           [
-            '-f', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
-            '--merge-output-format', 'mp4',
-            '-o', output,
+            '--force-overwrites',
+            '-f', '134',
+            '-o', videoTemp,
             pendiente.url
           ],
           {
@@ -145,8 +216,54 @@ export default {
           }
         )
 
+        console.log('[PLAY] Descargando audio 140...')
+
+        await execFileAsync(
+          'yt-dlp',
+          [
+            '--force-overwrites',
+            '-f', '140',
+            '-o', audioTemp,
+            pendiente.url
+          ],
+          {
+            timeout: 180000,
+            maxBuffer: 15 * 1024 * 1024
+          }
+        )
+
+        if (
+          !fs.existsSync(videoTemp) ||
+          !fs.existsSync(audioTemp)
+        ) {
+          throw new Error(
+            'No se pudieron descargar vídeo y audio.'
+          )
+        }
+
+        console.log('[PLAY] Uniendo vídeo + audio con FFmpeg...')
+
+        await execFileAsync(
+          'ffmpeg',
+          [
+            '-y',
+            '-i', videoTemp,
+            '-i', audioTemp,
+            '-c:v', 'copy',
+            '-c:a', 'aac',
+            '-shortest',
+            output
+          ],
+          {
+            timeout: 300000,
+            maxBuffer: 15 * 1024 * 1024
+          }
+        )
+
         if (!fs.existsSync(output)) {
-          throw new Error('No se pudo crear el archivo de vídeo.')
+          throw new Error(
+            'FFmpeg no creó el vídeo final.'
+          )
         }
 
         const bufferVideo = fs.readFileSync(output)
@@ -162,9 +279,12 @@ export default {
         )
 
       } else {
+        console.log('[PLAY] Descargando audio...')
+
         await execFileAsync(
           'yt-dlp',
           [
+            '--force-overwrites',
             '-x',
             '--audio-format', 'mp3',
             '--audio-quality', '5',
@@ -178,7 +298,9 @@ export default {
         )
 
         if (!fs.existsSync(output)) {
-          throw new Error('No se pudo crear el archivo de audio.')
+          throw new Error(
+            'No se pudo crear el archivo de audio.'
+          )
         }
 
         const bufferAudio = fs.readFileSync(output)
@@ -188,41 +310,56 @@ export default {
           {
             audio: bufferAudio,
             mimetype: 'audio/mpeg',
-            fileName: `${limpiarNombre(pendiente.title)}.mp3`,
+            fileName:
+              `${limpiarNombre(pendiente.title)}.mp3`,
             ptt: false
           },
           { quoted: m }
         )
       }
 
-      console.log(`[LEVI] PLAY enviado correctamente (${esVideo ? 'Video' : 'Audio'})`)
+      console.log(
+        `[LEVI] PLAY enviado correctamente (${esVideo ? 'Video' : 'Audio'})`
+      )
 
     } catch (error) {
-      console.error('[LEVI] ERROR selección PLAY:', error)
+      console.error(
+        '[LEVI] ERROR selección PLAY:',
+        error
+      )
 
       await sock.sendMessage(
         chatId,
         {
           text:
             '❌ *Error al descargar el archivo*\n\n' +
-            'Puede que YouTube haya bloqueado temporalmente la descarga ' +
-            'o que el formato no esté disponible.'
+            'YouTube no permitió completar la descarga.'
         },
         { quoted: m }
       )
 
     } finally {
-      try {
-        if (fs.existsSync(output)) {
-          fs.unlinkSync(output)
-        }
-      } catch {}
+      for (const archivo of [
+        videoTemp,
+        audioTemp,
+        output
+      ]) {
+        try {
+          if (fs.existsSync(archivo)) {
+            fs.unlinkSync(archivo)
+          }
+        } catch {}
+      }
     }
   },
 
   register(sock) {
     sock.playSelection = (m, opcion) => {
-      return this.seleccionar(sock, m, String(opcion).trim())
+      return this.seleccionar(
+        sock,
+        m,
+        String(opcion).trim()
+      )
     }
   }
 }

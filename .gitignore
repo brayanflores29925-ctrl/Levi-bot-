@@ -12,3 +12,9 @@ sessions/
 data/subbots/
 
 temp/
+
+# Respaldos de sesiones y archivos privados
+session-backup-*/
+heartbeat.status
+index.js.backup*
+*.status

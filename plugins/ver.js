@@ -7,6 +7,9 @@ export default {
   async execute(sock, m, args) {
     const chatId = m.key?.remoteJid
 
+    const owner = String(OWNER_NUMBER)
+      .replace(/\D/g, '')
+
     const senderRaw =
       m.key?.senderPn ||
       m.key?.participantPn ||
@@ -15,19 +18,19 @@ export default {
       m.key?.remoteJid ||
       ''
 
-    const sender = senderRaw
-    console.log("[VER DEBUG] senderRaw:", senderRaw, "| sender:", sender, "| owner:", owner)
+    const sender = String(senderRaw)
       .split('@')[0]
       .split(':')[0]
-
-    const owner = String(OWNER_NUMBER)
       .replace(/\D/g, '')
 
-    const senderNormalizado = sender.endsWith(owner)
-      ? owner
-      : sender
+    console.log(
+      '[VER DEBUG] sender:',
+      sender,
+      '| owner:',
+      owner
+    )
 
-    if (senderNormalizado !== owner) {
+    if (!sender.endsWith(owner)) {
       await sock.sendMessage(
         chatId,
         {
