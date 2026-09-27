@@ -190,7 +190,7 @@ https://chat.whatsapp.com/EIUm1G9DrrzB440yROjOEq
 
 ╭━━〔 📥 DESCARGAS 〕━━╮
 ❑ /play — 🎵 Buscar y reproducir música.
-❑ /play2 — 🎵 Descargar música.
+❑ /play2 — 🎧 Buscar y descargar solo audio.
 ❑ /playdoc — 📄 Descargar audio como documento.
 ❑ /playvideo — 🎥 Descargar video.
 ❑ /ytsearch — 🔎 Buscar videos en YouTube.
