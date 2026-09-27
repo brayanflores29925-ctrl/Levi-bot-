@@ -1,63 +1,78 @@
-import ytSearch from 'yt-search'
-import axios from 'axios'
+import { execFile } from 'child_process'
+import { promisify } from 'util'
+import fs from 'fs'
+import path from 'path'
 
-const ALLDL_API = 'https://ahm7xmakki.com/api/alldl'
+const execFileAsync = promisify(execFile)
 
 export default {
   name: 'play2',
 
-  async execute(sock, m, parts) {
-    const chatId = m.chat || m.key?.remoteJid
-    const busqueda = parts?.join(' ').trim()
+  async execute(sock, m, parts, enviar) {
+    const chatId = m.key?.remoteJid
+    const url = parts.join(' ').trim()
 
-    if (!busqueda) {
-      return sock.sendMessage(chatId, {
-        text: '❌ Escribe el nombre de una canción.\n\nEjemplo: /play2 Feliz Navidad'
-      })
+    if (!url) {
+      return enviar(
+        '🎧 *PLAY2 - AUDIO*\n\n' +
+        'Envía una URL directa de un archivo de audio.\n\n' +
+        'Ejemplo:\n' +
+        '/play2 https://ejemplo.com/cancion.mp3'
+      )
     }
 
-    await sock.sendMessage(chatId, {
-      text: `🔎 Buscando *${busqueda}*...`
-    })
+    if (!/^https?:\/\/\S+$/i.test(url)) {
+      return enviar('❌ Debes proporcionar una URL válida.')
+    }
+
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`
+    const dir = path.join(process.cwd(), 'temp')
+    const salida = path.join(dir, `play2-${id}.mp3`)
 
     try {
-      const resultado = await ytSearch(busqueda)
-      const video = resultado.videos?.[0]
+      fs.mkdirSync(dir, { recursive: true })
 
-      if (!video) {
-        return sock.sendMessage(chatId, {
-          text: '❌ No encontré esa canción.'
-        })
+      await enviar('⏳ *Descargando audio...* 🎧')
+
+      await execFileAsync(
+        'yt-dlp',
+        [
+          '--no-playlist',
+          '--no-warnings',
+          '-x',
+          '--audio-format', 'mp3',
+          '--audio-quality', '5',
+          '-o', salida,
+          url
+        ],
+        {
+          timeout: 300000,
+          maxBuffer: 25 * 1024 * 1024
+        }
+      )
+
+      if (!fs.existsSync(salida)) {
+        throw new Error('No se creó el archivo de audio.')
       }
 
-      const respuesta = await axios.get(ALLDL_API, {
-        params: { url: video.url },
-        timeout: 30000
-      })
+      const audio = fs.readFileSync(salida)
 
-      const datos = respuesta.data?.mediaInfo
-
-      if (!respuesta.data?.success || !datos?.audioUrl) {
-        return sock.sendMessage(chatId, {
-          text: '❌ No pude obtener el audio de esa canción.'
-        })
-      }
-
-      await sock.sendMessage(chatId, {
-        text: `⏳ Descargando audio...\n\n🎵 *${datos.title || video.title}*`
-      })
-
-      await sock.sendMessage(chatId, {
-        audio: { url: datos.audioUrl },
-        mimetype: 'audio/mpeg',
-        fileName: `${(datos.title || video.title).replace(/[\\/:*?"<>|]/g, '')}.mp3`
-      })
-
+      await sock.sendMessage(
+        chatId,
+        {
+          audio,
+          mimetype: 'audio/mpeg',
+          fileName: 'audio.mp3'
+        },
+        { quoted: m }
+      )
     } catch (error) {
-      console.error('Error en /play2:', error)
-      await sock.sendMessage(chatId, {
-        text: `❌ Error en /play2: ${error.message}`
-      })
+      console.error('[PLAY2] Error:', error.stderr || error.message)
+      await enviar('❌ No se pudo descargar el audio.')
+    } finally {
+      try {
+        if (fs.existsSync(salida)) fs.unlinkSync(salida)
+      } catch {}
     }
   }
 }
