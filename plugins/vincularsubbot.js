@@ -222,7 +222,7 @@ export default {
 
       console.log('[LEVI CODE] Solicitando código para:', numero)
 
-      const code = await subSock.requestPairingCode(numero, 'Chrome')
+      const code = await subSock.requestPairingCode(numero)
 
       console.log('[LEVI CODE] Código recibido correctamente')
 
