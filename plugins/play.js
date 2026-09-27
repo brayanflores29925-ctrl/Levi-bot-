@@ -3,9 +3,9 @@ import { execFile } from 'child_process'
 import { promisify } from 'util'
 import fs from 'fs'
 import path from 'path'
-import * as Baileys from '@whiskeysockets/baileys'
 
 const execFileAsync = promisify(execFile)
+
 const pendientes = new Map()
 const TEMP_DIR = path.join(process.cwd(), 'temp')
 
@@ -19,6 +19,28 @@ function limpiarNombre(nombre) {
     .replace(/\s+/g, ' ')
     .trim()
     .slice(0, 100)
+}
+
+async function descargar(url, args, opciones = {}) {
+  const { timeout = 300000 } = opciones
+
+  try {
+    const resultado = await execFileAsync(
+      'yt-dlp',
+      args,
+      {
+        timeout,
+        maxBuffer: 25 * 1024 * 1024
+      }
+    )
+
+    console.log('[PLAY] yt-dlp:', resultado.stdout || '')
+    return resultado
+  } catch (error) {
+    console.error('[PLAY] yt-dlp ERROR:')
+    console.error(error.stderr || error.message)
+    throw error
+  }
 }
 
 export default {
@@ -61,7 +83,7 @@ export default {
         ? Number(video.views).toLocaleString()
         : 'N/A'
 
-      const textoDetalle =
+      const mensajePortada =
         '╭━━━━━━━━━━━━━━━━━━━━╮\n' +
         '┃     🎵 YOUTUBE PLAY     ┃\n' +
         '╰━━━━━━━━━━━━━━━━━━━━╯\n\n' +
@@ -69,18 +91,12 @@ export default {
         `👤 *Canal:* ${canal}\n` +
         `⏱️ *Duración:* ${duracion}\n` +
         `👁️ *Vistas:* ${vistas}\n\n` +
-        '👇 *Selecciona qué deseas descargar:*'
+        '👇 *Elige el formato de descarga:*\n\n' +
+        '🎬 *.1* → Descargar Vídeo MP4\n' +
+        '🎧 *.2* → Descargar Audio MP3'
 
       try {
         const miniatura = video.thumbnail
-
-        const mensajePortada =
-          `${textoDetalle.replace(
-            '👇 *Selecciona qué deseas descargar:*',
-            '👇 *Elige el formato de descarga:*'
-          )}\n\n` +
-          '🎬 *.1* → Descargar Vídeo MP4\n' +
-          '🎧 *.2* → Descargar Audio MP3'
 
         if (miniatura) {
           await sock.sendMessage(
@@ -101,20 +117,12 @@ export default {
           )
         }
 
-        console.log('[PLAY] Portada y menú de texto enviados correctamente.')
+        console.log('[PLAY] Menú enviado correctamente.')
         return
-
       } catch (errorMenu) {
-        console.error(
-          '[PLAY] Error enviando menú interactivo:',
-          errorMenu
-        )
+        console.error('[PLAY] Error enviando menú:', errorMenu)
 
-        return enviar(
-          `${textoDetalle}\n\n` +
-          '🎬 *.1* → Descargar Vídeo MP4\n' +
-          '🎧 *.2* → Descargar Audio MP3'
-        )
+        return enviar(mensajePortada)
       }
 
     } catch (error) {
@@ -161,8 +169,8 @@ export default {
         {
           text:
             '⚠️ *Opción incorrecta*\n\n' +
-            '🎬 Vídeo\n' +
-            '🎧 Audio'
+            '🎬 *.1* → Vídeo\n' +
+            '🎧 *.2* → Audio'
         },
         { quoted: m }
       )
@@ -172,16 +180,6 @@ export default {
 
     const id =
       `${Date.now()}-${Math.random().toString(36).slice(2)}`
-
-    const videoTemp = path.join(
-      TEMP_DIR,
-      `play-${id}-video.mp4`
-    )
-
-    const audioTemp = path.join(
-      TEMP_DIR,
-      `play-${id}-audio.m4a`
-    )
 
     const output = path.join(
       TEMP_DIR,
@@ -193,77 +191,34 @@ export default {
         chatId,
         {
           text: esVideo
-            ? '⏳ *Descargando vídeo...*\n\nEspera un momento 🎬'
-            : '⏳ *Descargando audio...*\n\nEspera un momento 🎧'
+            ? '⏳ *Descargando vídeo...*\n\nEstoy buscando automáticamente el mejor formato disponible 🎬'
+            : '⏳ *Descargando audio...*\n\nEstoy preparando el audio 🎧'
         },
         { quoted: m }
       )
 
       if (esVideo) {
-        console.log('[PLAY] Descargando vídeo 134...')
+        console.log('[PLAY] Descarga automática de vídeo...')
 
-        await execFileAsync(
-          'yt-dlp',
+        await descargar(
+          pendiente.url,
           [
+            '--no-playlist',
             '--force-overwrites',
-            '-f', '134',
-            '-o', videoTemp,
+            '--no-warnings',
+            '-f',
+            'bv*+ba/b',
+            '--merge-output-format',
+            'mp4',
+            '-o',
+            output,
             pendiente.url
           ],
-          {
-            timeout: 300000,
-            maxBuffer: 15 * 1024 * 1024
-          }
-        )
-
-        console.log('[PLAY] Descargando audio 140...')
-
-        await execFileAsync(
-          'yt-dlp',
-          [
-            '--force-overwrites',
-            '-f', '140',
-            '-o', audioTemp,
-            pendiente.url
-          ],
-          {
-            timeout: 180000,
-            maxBuffer: 15 * 1024 * 1024
-          }
-        )
-
-        if (
-          !fs.existsSync(videoTemp) ||
-          !fs.existsSync(audioTemp)
-        ) {
-          throw new Error(
-            'No se pudieron descargar vídeo y audio.'
-          )
-        }
-
-        console.log('[PLAY] Uniendo vídeo + audio con FFmpeg...')
-
-        await execFileAsync(
-          'ffmpeg',
-          [
-            '-y',
-            '-i', videoTemp,
-            '-i', audioTemp,
-            '-c:v', 'copy',
-            '-c:a', 'aac',
-            '-shortest',
-            output
-          ],
-          {
-            timeout: 300000,
-            maxBuffer: 15 * 1024 * 1024
-          }
+          { timeout: 300000 }
         )
 
         if (!fs.existsSync(output)) {
-          throw new Error(
-            'FFmpeg no creó el vídeo final.'
-          )
+          throw new Error('yt-dlp no creó el vídeo final.')
         }
 
         const bufferVideo = fs.readFileSync(output)
@@ -279,28 +234,30 @@ export default {
         )
 
       } else {
-        console.log('[PLAY] Descargando audio...')
+        console.log('[PLAY] Descarga automática de audio...')
 
-        await execFileAsync(
-          'yt-dlp',
+        await descargar(
+          pendiente.url,
           [
+            '--no-playlist',
             '--force-overwrites',
+            '--no-warnings',
+            '-f',
+            'ba/b',
             '-x',
-            '--audio-format', 'mp3',
-            '--audio-quality', '5',
-            '-o', output,
+            '--audio-format',
+            'mp3',
+            '--audio-quality',
+            '5',
+            '-o',
+            output,
             pendiente.url
           ],
-          {
-            timeout: 180000,
-            maxBuffer: 15 * 1024 * 1024
-          }
+          { timeout: 300000 }
         )
 
         if (!fs.existsSync(output)) {
-          throw new Error(
-            'No se pudo crear el archivo de audio.'
-          )
+          throw new Error('yt-dlp no creó el audio final.')
         }
 
         const bufferAudio = fs.readFileSync(output)
@@ -323,32 +280,29 @@ export default {
       )
 
     } catch (error) {
-      console.error(
-        '[LEVI] ERROR selección PLAY:',
-        error
-      )
+      console.error('[LEVI] ERROR selección PLAY:')
+      console.error(error.stderr || error.message || error)
 
       await sock.sendMessage(
         chatId,
         {
           text:
-            '❌ *Error al descargar el archivo*\n\n' +
-            'YouTube no permitió completar la descarga.'
+            '❌ *No se pudo completar la descarga.*\n\n' +
+            'El vídeo o audio no está disponible en un formato compatible.'
         },
         { quoted: m }
       )
 
     } finally {
-      for (const archivo of [
-        videoTemp,
-        audioTemp,
-        output
-      ]) {
-        try {
-          if (fs.existsSync(archivo)) {
-            fs.unlinkSync(archivo)
-          }
-        } catch {}
+      try {
+        if (fs.existsSync(output)) {
+          fs.unlinkSync(output)
+        }
+      } catch (errorLimpieza) {
+        console.error(
+          '[PLAY] No se pudo eliminar temporal:',
+          errorLimpieza.message
+        )
       }
     }
   },
