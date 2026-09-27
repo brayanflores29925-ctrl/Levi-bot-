@@ -19,19 +19,22 @@ export default {
         {
           params: {
             name: ciudad,
-            count: 1,
+            count: 10,
             language: 'es',
+            countryCode: 'HN',
             format: 'json'
           },
           timeout: 15000
         }
       )
 
-      const lugar = geo.data?.results?.[0]
+      const lugar = geo.data?.results?.find(
+        r => r.country_code === 'HN'
+      )
 
       if (!lugar) {
         return sock.sendMessage(chatId, {
-          text: '❌ No encontré esa ciudad.'
+          text: '❌ No encontré esa ciudad en Honduras.'
         })
       }
 

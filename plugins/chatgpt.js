@@ -15,14 +15,14 @@ export default {
 
     try {
       const respuesta = await axios.get(
-        'https://prexzyapis.com/ai/chatgpt',
+        'https://prexzyapis.com/ai/ch',
         {
           params: { q: texto },
           timeout: 30000
         }
       )
 
-      const resultado = respuesta.data?.result
+      const resultado = respuesta.data?.response
 
       if (!resultado) {
         return sock.sendMessage(chatId, {

@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import { iniciarApiCode } from "./api/code.js"
 import { guardarMensaje } from "./plugins/registro.js"
 import { manejarVistaUnica } from './viewonce.js'

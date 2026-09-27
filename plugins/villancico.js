@@ -29,7 +29,7 @@ export default {
 
       const disponibles = pistas.filter(pista =>
         pista?.is_premium === false &&
-        (pista?.file?.mp3 || pista?.mp3_url || pista?.audio_url)
+        (pista?.files?.mp3 || pista?.mp3_url || pista?.audio_url)
       )
 
       if (!disponibles.length) {
@@ -39,7 +39,7 @@ export default {
       const pista = disponibles[Math.floor(Math.random() * disponibles.length)]
 
       const audioUrl =
-        pista.file?.mp3 ||
+        pista?.files?.mp3 ||
         pista.mp3_url ||
         pista.audio_url
 
