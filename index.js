@@ -354,6 +354,118 @@ function setupSocket(sock) {
       const chatId = m.key?.remoteJid
       const sender = m.key?.participant || m.participant || chatId
       m.sender = sender
+
+      // 🤬 FILTRO ANTIPALABROTAS
+      if (chatId?.endsWith("@g.us")) {
+        try {
+          const dbFiltro = getDB()
+          const configFiltro = dbFiltro.grupos?.[chatId]
+
+          if (
+            configFiltro?.antipalabrotas === true &&
+            Array.isArray(configFiltro.palabrasProhibidas) &&
+            configFiltro.palabrasProhibidas.length > 0
+          ) {
+            const textoFiltro =
+              m.message?.conversation ||
+              m.message?.extendedTextMessage?.text ||
+              m.message?.imageMessage?.caption ||
+              m.message?.videoMessage?.caption ||
+              ""
+
+            const textoNormalizado = String(textoFiltro)
+              .toLowerCase()
+              .normalize("NFD")
+              .replace(/[\\u0300-\\u036f]/g, "")
+
+            const palabraEncontrada = configFiltro.palabrasProhibidas.find(palabra => {
+              const palabraNormalizada = String(palabra)
+                .toLowerCase()
+                .normalize("NFD")
+                .replace(/[\\u0300-\\u036f]/g, "")
+                .trim()
+
+              if (!palabraNormalizada) return false
+
+              const escapada = palabraNormalizada.replace(/[.*+?^${}()|[\\]\\]/g, "\\\\$&")
+              const expresion = new RegExp(`(^|\\\\s)${escapada}(?=$|\\\\s|[.,!?;:()\\[\\]{}"']|[¿¡])`, "i")
+
+              return expresion.test(textoNormalizado)
+            })
+
+            if (palabraEncontrada) {
+              try {
+                await sock.sendMessage(chatId, {
+                  delete: {
+                    remoteJid: chatId,
+                    fromMe: false,
+                    id: m.key.id,
+                    participant: sender
+                  }
+                })
+              } catch (error) {
+                log("WARN", `No se pudo eliminar mensaje por palabra prohibida: ${error.message}`)
+              }
+
+              return
+            }
+          }
+        } catch (error) {
+          log("WARN", `Error en Anti-palabrotas: ${error.message}`)
+        }
+      }
+
+      // 🚫 ANTISPAM DE MENSAJES
+      if (chatId?.endsWith("@g.us")) {
+        try {
+          const dbSpam = getDB()
+          const configSpam = dbSpam.grupos?.[chatId]
+
+          if (configSpam?.antispam === true) {
+            const metadataSpam = await sock.groupMetadata(chatId)
+            const participanteSpam = metadataSpam.participants.find(p => p.id === sender)
+
+            // Los administradores no están sujetos al AntiSpam
+            if (!participanteSpam?.admin) {
+              if (!sock.antiSpamHistory) sock.antiSpamHistory = new Map()
+
+              const claveSpam = `${chatId}:${sender}`
+              const ahoraSpam = Date.now()
+              const ventanaSpam = 5000
+              const limiteSpam = 5
+
+              let historialSpam = sock.antiSpamHistory.get(claveSpam) || []
+
+              historialSpam = historialSpam.filter(
+                tiempo => ahoraSpam - tiempo < ventanaSpam
+              )
+
+              historialSpam.push(ahoraSpam)
+              sock.antiSpamHistory.set(claveSpam, historialSpam)
+
+              if (historialSpam.length > limiteSpam) {
+                try {
+                  await sock.sendMessage(chatId, {
+                    delete: {
+                      remoteJid: chatId,
+                      fromMe: false,
+                      id: m.key.id,
+                      participant: sender
+                    }
+                  })
+                } catch (error) {
+                  log("WARN", `No se pudo eliminar mensaje por AntiSpam: ${error.message}`)
+                }
+
+                return
+              }
+            }
+          }
+        } catch (error) {
+          log("WARN", `Error en AntiSpam: ${error.message}`)
+        }
+      }
+
       console.log("[OWNER DEBUG] sender:", sender, "| participant:", m.key?.participant, "| remoteJid:", m.key?.remoteJid)
 
       // 🎯 Objetivo central: mención, respuesta o reacción
