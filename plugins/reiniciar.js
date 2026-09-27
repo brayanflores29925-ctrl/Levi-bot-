@@ -1,16 +1,10 @@
-import { OWNER_NUMBER } from '../config.js'
+import { esOwner } from '../config.js'
 
 export default {
   name: 'reiniciar',
   async execute(sock, m) {
     const chatId = m.chat || m.key?.remoteJid
-    const sender = m.sender || m.key?.participant || m.key?.remoteJid || ''
-
-    const numero = sender
-      .split('@')[0]
-      .replace(/\D/g, '')
-
-    if (!numero.endsWith(OWNER_NUMBER)) {
+    if (!esOwner(m)) {
       return await sock.sendMessage(chatId, {
         text: '❌ *ACCESO DENEGADO*\n\nEste comando es exclusivo del OWNER de LeviBot.'
       })

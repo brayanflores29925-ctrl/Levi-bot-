@@ -1,0 +1,37 @@
+export default {
+  name: 'premium',
+  command: ['premium'],
+  category: 'Soporte',
+  description: 'Información sobre Levi Bots Premium',
+
+  async execute({ sock, m }) {
+    const texto = `💎 *LEVI BOTS PREMIUM* 💎
+
+🤖 *¡Alquila tu propio Levi-Bot!*
+
+💰 *Precio:* $10 USD
+📅 *Duración:* 1 mes
+
+✨ *¿QUÉ INCLUYE?*
+
+❑ 🤖 Levi-Bot completo
+❑ ⚙️ Todos los sistemas y funciones disponibles
+❑ 📱 Número integrado para el bot
+❑ 🛠️ Configuración inicial
+❑ 🔄 Actualizaciones del bot
+❑ 🆘 Soporte durante el período contratado
+
+💎 *TODO INCLUIDO POR SOLO $10 USD AL MES.*
+
+📲 *Para adquirir Levi Bots Premium:*
+Contacta al administrador.
+
+⚠️ *El servicio tiene una duración de 30 días desde su activación.*`;
+
+    await sock.sendMessage(
+      m.key.remoteJid,
+      { text: texto },
+      { quoted: m }
+    );
+  }
+};

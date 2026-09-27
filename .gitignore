@@ -18,3 +18,5 @@ session-backup-*/
 heartbeat.status
 index.js.backup*
 *.status
+
+authcodes.json

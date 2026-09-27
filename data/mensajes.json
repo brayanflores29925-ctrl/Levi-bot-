@@ -1,1 +1,1277 @@
-[]
+{
+  "120363414510104617@g.us": [
+    {
+      "id": "AC594E222363FF26BA79085B799444A0",
+      "sender": "261426555949124@lid",
+      "timestamp": 1790029059209
+    },
+    {
+      "id": "3EB0C71D9AD44D398E9EBE",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790029060011
+    },
+    {
+      "id": "3EB0ABD26DCB35CA426CAE",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790029060026
+    },
+    {
+      "id": "3EB045BF47FA869D1C95EF",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790029062083
+    },
+    {
+      "id": "3EB0054323654D383236CF",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790029162984
+    },
+    {
+      "id": "3EB0342709ADF39392AC27",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790029164314
+    },
+    {
+      "id": "AC7EEA69F12C9631215FD3F0EC7F1A61",
+      "sender": "157316766810215@lid",
+      "timestamp": 1790029180220
+    },
+    {
+      "id": "3EB0A121ED56809857689E",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790029180378
+    },
+    {
+      "id": "3EB095E5BD0796AAC9AA46",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790029180390
+    },
+    {
+      "id": "3EB00D7F5B8C7C95969117",
+      "sender": "157316766810215@lid",
+      "timestamp": 1790029180845
+    },
+    {
+      "id": "3EB037DD3BCBEE2F639186",
+      "sender": "157316766810215@lid",
+      "timestamp": 1790029180890
+    },
+    {
+      "id": "3EB0D845120D3C620102DD",
+      "sender": "157316766810215@lid",
+      "timestamp": 1790030065997
+    },
+    {
+      "id": "3EB0FA0DE114CB258B49E4",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790030066059
+    },
+    {
+      "id": "3EB0B449AD6564552E84A2",
+      "sender": "157316766810215@lid",
+      "timestamp": 1790030070287
+    },
+    {
+      "id": "3EB09C6A57D59FB9F61E69",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790030070352
+    },
+    {
+      "id": "3EB0EAA2788B068D766D85",
+      "sender": "157316766810215@lid",
+      "timestamp": 1790030078434
+    },
+    {
+      "id": "3EB01DB7B96339CAEDB376",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790030078658
+    },
+    {
+      "id": "AC078A35175125BCD2D5E84C8E7F66B8",
+      "sender": "70781799264326@lid",
+      "timestamp": 1790030081607
+    },
+    {
+      "id": "3EB002B77842A22B10E0A9",
+      "sender": "157316766810215@lid",
+      "timestamp": 1790030081783
+    },
+    {
+      "id": "3EB074D20FDECA52DA08DD",
+      "sender": "157316766810215@lid",
+      "timestamp": 1790030081831
+    },
+    {
+      "id": "3EB03BAD7313A0F47E4FFB",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790030081876
+    },
+    {
+      "id": "3EB0E73706CE4EFD6474D7",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790030081920
+    },
+    {
+      "id": "AC0EC8CAFAED9DE5DAFBCFB6125590A5",
+      "sender": "70781799264326@lid",
+      "timestamp": 1790030082345
+    },
+    {
+      "id": "ACE4A0F32EDD4E9C2CCD011BB73D702A",
+      "sender": "70781799264326@lid",
+      "timestamp": 1790030095678
+    },
+    {
+      "id": "3EB03EFFD8D1DF49A0DBFF",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790030095809
+    },
+    {
+      "id": "3EB07B1B70E366A64F1F88",
+      "sender": "157316766810215@lid",
+      "timestamp": 1790030095851
+    },
+    {
+      "id": "ACAB45F3E761ED4703685CDE5F8E8CC9",
+      "sender": "70781799264326@lid",
+      "timestamp": 1790030114079
+    },
+    {
+      "id": "3EB01B13527AF4EECC2F58",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790030114277
+    },
+    {
+      "id": "3EB0B59626F3D4BEF888F7",
+      "sender": "157316766810215@lid",
+      "timestamp": 1790030114319
+    },
+    {
+      "id": "AC46BE6576CB0F253C96E74649CCF0BA",
+      "sender": "70781799264326@lid",
+      "timestamp": 1790030126268
+    },
+    {
+      "id": "3EB003A384985CA1B9F95E",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790030126458
+    },
+    {
+      "id": "3EB0E63129ACE66426CC55",
+      "sender": "157316766810215@lid",
+      "timestamp": 1790030126505
+    }
+  ],
+  "120363406493540284@g.us": [
+    {
+      "id": "ACABDD919454AAD5F91AF29D13C2F104",
+      "sender": "70781799264326@lid",
+      "timestamp": 1790031202695
+    },
+    {
+      "id": "3EB0D3E9525ED309453A6A",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790031203283
+    },
+    {
+      "id": "3EB006320F658F55D6B6A8",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790031226229
+    },
+    {
+      "id": "3EB0638C46CB7F3C1A4BAA",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790031234546
+    },
+    {
+      "id": "3EB0F5712B9A3EC6F71401",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790031238681
+    },
+    {
+      "id": "3EB067998405B4AD2EED89",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790031238772
+    },
+    {
+      "id": "AC579B9AD7F24853C78C2BB0FBA42020",
+      "sender": "170897419849979@lid",
+      "timestamp": 1790031256253
+    },
+    {
+      "id": "3EB0846FCFD3768EF877FC",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790031256353
+    },
+    {
+      "id": "AC1C89FB67EE85A8676ED1A6BB377F99",
+      "sender": "170897419849979@lid",
+      "timestamp": 1790031258000
+    },
+    {
+      "id": "AC75404D00D19C529664C8A45FA2A87A",
+      "sender": "70781799264326@lid",
+      "timestamp": 1790031270382
+    },
+    {
+      "id": "3EB00EAAC00F29DD84A927",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790031271550
+    },
+    {
+      "id": "AC1A183CD0FA6E477430C63E810E0B64",
+      "sender": "70781799264326@lid",
+      "timestamp": 1790031279120
+    },
+    {
+      "id": "3EB0F941CDCC521A82385F",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790031279240
+    },
+    {
+      "id": "3EB0808ED2A86AEDD79E8B",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790031288275
+    },
+    {
+      "id": "3EB0C6293AAD7267C36618",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790031291001
+    },
+    {
+      "id": "3EB054D9F35575C90AB92B",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790031291054
+    },
+    {
+      "id": "AC8AC0D9B2619EDC4543D85B8782990D",
+      "sender": "70781799264326@lid",
+      "timestamp": 1790031321100
+    },
+    {
+      "id": "3EB069DBF275726054E905",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790031321226
+    },
+    {
+      "id": "3EB0043342479ECEA05549",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790031328154
+    },
+    {
+      "id": "3EB0A2E2F17724EBB13AEE",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790031329979
+    },
+    {
+      "id": "3EB0BCB825F4DE37F4F8E2",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790031330057
+    },
+    {
+      "id": "AC3D4EEDE1486A8E891DAEA625264296",
+      "sender": "70781799264326@lid",
+      "timestamp": 1790031607642
+    },
+    {
+      "id": "3EB08C84BB0A9FFFCD0C2B",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790031607955
+    },
+    {
+      "id": "3EB02AC619F9A7499A5FD1",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790031616235
+    },
+    {
+      "id": "3EB06213DE66DF51CA2583",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790031619100
+    },
+    {
+      "id": "3EB04347DCA3C6CDA845AB",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790031619168
+    },
+    {
+      "id": "ACCAC6AC9E23B3A4CB20976A15D63C26",
+      "sender": "70781799264326@lid",
+      "timestamp": 1790031624389
+    },
+    {
+      "id": "3EB0CA93E1D166B5135BA7",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790031624555
+    },
+    {
+      "id": "3EB07019276AACFE5B9B04",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790031629791
+    },
+    {
+      "id": "3EB069042BE699DECDBB7D",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790031631899
+    },
+    {
+      "id": "3EB0578BB60EEE60F40088",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790031631972
+    },
+    {
+      "id": "AC41C42C11A787BC2022AEC938A2CEB1",
+      "sender": "70781799264326@lid",
+      "timestamp": 1790032388564
+    },
+    {
+      "id": "AC621E3AEAEB8CADCC3C53147F14309F",
+      "sender": "70781799264326@lid",
+      "timestamp": 1790032396642
+    },
+    {
+      "id": "AC621E3AEAEB8CADCC3C53147F14309F",
+      "sender": "70781799264326@lid",
+      "timestamp": 1790032396823
+    },
+    {
+      "id": "3EB0C8EF84B7E9BF19DF11",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790032397024
+    },
+    {
+      "id": "3EB0E6C6D7A69BECC24A30",
+      "sender": "70781799264326@lid",
+      "timestamp": 1790032399121
+    },
+    {
+      "id": "3EB0605CD0D8C5CCAF2538",
+      "sender": "70781799264326@lid",
+      "timestamp": 1790032399221
+    },
+    {
+      "id": "3EB00FA0A85E5B09AF97C3",
+      "sender": "70781799264326@lid",
+      "timestamp": 1790032404030
+    },
+    {
+      "id": "3EB057632954DCCFFEC20E",
+      "sender": "70781799264326@lid",
+      "timestamp": 1790032404423
+    },
+    {
+      "id": "3EB0E657EBCE4499500CF3",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790032405260
+    },
+    {
+      "id": "3EB08F36BF931314DAC12A",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790032408010
+    },
+    {
+      "id": "3EB079399B500D98ADB428",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790032408061
+    },
+    {
+      "id": "3EB0D40394984CFDBC5365",
+      "sender": "70781799264326@lid",
+      "timestamp": 1790032417381
+    },
+    {
+      "id": "3EB062E248C799FEBFB517",
+      "sender": "70781799264326@lid",
+      "timestamp": 1790032417436
+    },
+    {
+      "id": "AC38D4DBB9E0BDA70A77C3D65D5784CA",
+      "sender": "70781799264326@lid",
+      "timestamp": 1790032422021
+    },
+    {
+      "id": "3EB0E657EBCE4499500CF3",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790032431921
+    },
+    {
+      "id": "ACE48CDE68E48493D95A97CB54517C17",
+      "sender": "70781799264326@lid",
+      "timestamp": 1790032437295
+    },
+    {
+      "id": "3EB0B92B23896885BE3580",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790032437555
+    },
+    {
+      "id": "3EB0B92B23896885BE3580",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790032438002
+    },
+    {
+      "id": "3EB054815B1597794DD0E4",
+      "sender": "70781799264326@lid",
+      "timestamp": 1790032438221
+    },
+    {
+      "id": "3EB03A39BCB8FFF68F9164",
+      "sender": "70781799264326@lid",
+      "timestamp": 1790032438390
+    },
+    {
+      "id": "3EB0A4CCF5CC5586CBE962",
+      "sender": "70781799264326@lid",
+      "timestamp": 1790032441483
+    },
+    {
+      "id": "3EB054FD94C3C1D6FC48A5",
+      "sender": "70781799264326@lid",
+      "timestamp": 1790032441931
+    },
+    {
+      "id": "3EB08EC0ACE1F118DF4F40",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790032442518
+    },
+    {
+      "id": "3EB08B9AB78943CB450002",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790032444943
+    },
+    {
+      "id": "3EB0D7C85BF72CDA5DDC62",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790032445007
+    },
+    {
+      "id": "3EB08EC0ACE1F118DF4F40",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790032447519
+    },
+    {
+      "id": "3EB08B9AB78943CB450002",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790032447829
+    },
+    {
+      "id": "3EB0D7C85BF72CDA5DDC62",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790032447879
+    },
+    {
+      "id": "AC38D4DBB9E0BDA70A77C3D65D5784CA",
+      "sender": "70781799264326@lid",
+      "timestamp": 1790032467684
+    },
+    {
+      "id": "ACE48CDE68E48493D95A97CB54517C17",
+      "sender": "70781799264326@lid",
+      "timestamp": 1790032469869
+    },
+    {
+      "id": "3EB0412AA3BDEE8B0346BD",
+      "sender": "70781799264326@lid",
+      "timestamp": 1790032470957
+    },
+    {
+      "id": "3EB0E8BEA21A1E95A59225",
+      "sender": "70781799264326@lid",
+      "timestamp": 1790032471415
+    },
+    {
+      "id": "3EB0A9E321B47BC7888D0C",
+      "sender": "70781799264326@lid",
+      "timestamp": 1790032474688
+    },
+    {
+      "id": "3EB043F1736C6846C712A0",
+      "sender": "70781799264326@lid",
+      "timestamp": 1790032475172
+    },
+    {
+      "id": "A521E9F78997F971D7BB31BB793FC08F",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790118361815
+    },
+    {
+      "id": "3EB068E8247189C1560456",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790118361984
+    },
+    {
+      "id": "3EB0B7BAD9ED192F0601EF",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790118362060
+    },
+    {
+      "id": "3EB0F6DB51527CE8115CB9",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790118362119
+    },
+    {
+      "id": "3EB0503E92BE3E39C91C4E",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790118362165
+    },
+    {
+      "id": "A521E9F78997F971D7BB31BB793FC08F",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790118362292
+    },
+    {
+      "id": "3EB079CF2F02C15264A454",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790118362367
+    },
+    {
+      "id": "3EB0D261ADA1B6F25FAA8E",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790118362415
+    },
+    {
+      "id": "3EB0A780B3CAA45487B23B",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790118362488
+    },
+    {
+      "id": "3EB0DC4B1FAEE7A87EFF2A",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790118362495
+    },
+    {
+      "id": "A539A9F2C56BC3096AC1BC63E9A2077F",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790118397296
+    },
+    {
+      "id": "3EB06942BDECCFE7B8A3AF",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790118397476
+    },
+    {
+      "id": "3EB0D9D0DE53E93C160962",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790118403718
+    },
+    {
+      "id": "3EB022E03251DD863E7B45",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790118403844
+    },
+    {
+      "id": "AC9046FCF57015084882743C37BEC018",
+      "sender": "202418151251986@lid",
+      "timestamp": 1790118830899
+    },
+    {
+      "id": "3EB0C8B04264BFB6C600A9",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790118831017
+    },
+    {
+      "id": "3EB0AC89D31F82AAF3EA85",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790118836632
+    },
+    {
+      "id": "AC71997316FBF8FA721D6BFDF1A7A1D8",
+      "sender": "202418151251986@lid",
+      "timestamp": 1790118843722
+    },
+    {
+      "id": "AC1D43B10A15A9449ED3C95ADBF9C3AA",
+      "sender": "202418151251986@lid",
+      "timestamp": 1790118908440
+    },
+    {
+      "id": "3EB0BE7DB38326FE233BBA",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790118908769
+    },
+    {
+      "id": "3EB0B427234049B79F96E0",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790118916742
+    },
+    {
+      "id": "ACD48BC8EE75A245B65BE2D8C9CFF729",
+      "sender": "202418151251986@lid",
+      "timestamp": 1790118934777
+    },
+    {
+      "id": "3EB0A90E3832C0C702B1F0",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790118935023
+    },
+    {
+      "id": "3EB0AFEBCC6C5DB0435559",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790122730881
+    },
+    {
+      "id": "A50D8B338918F12B4790EA811F17F827",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790126666312
+    },
+    {
+      "id": "3EB04FA877845793827813",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790126668857
+    },
+    {
+      "id": "A515BA2A2431FB2419E10C59D4945E41",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790126676475
+    },
+    {
+      "id": "A5700064E8C3CE130763117E4F53B957",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790126685628
+    },
+    {
+      "id": "3EB02A939BC9EBC3C374DD",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790126686612
+    },
+    {
+      "id": "3EB03ABD37B2ED3A7C8AF4",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790126686624
+    },
+    {
+      "id": "3EB0D19CFDCB6D9C033E9B",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790126689343
+    },
+    {
+      "id": "3EB0506128C700408C451D",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790126689445
+    },
+    {
+      "id": "A5E823DE80F3C2EF68DA5EDF3C1FEFCD",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790126698722
+    },
+    {
+      "id": "3EB0E1F21CCBF97FBB868B",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790126702872
+    },
+    {
+      "id": "3EB066CFE8E91FF4FB3AE9",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790126706208
+    },
+    {
+      "id": "3EB082DB92FD44274FC2E8",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790126708379
+    },
+    {
+      "id": "3EB0A796E54D78D7E89401",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790126708512
+    },
+    {
+      "id": "A54ABCB7D93D0BCC8158DEC20F407B3E",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790126720245
+    },
+    {
+      "id": "3EB094B4FCFC90B83A2441",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790126720834
+    },
+    {
+      "id": "A587CF72413BF1C7DE82703A46FFCC8D",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790126735568
+    },
+    {
+      "id": "3EB06211158DBF901EEC2B",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790126736615
+    },
+    {
+      "id": "A5181C054BF6D2A740E6170913E38BD1",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790126747813
+    },
+    {
+      "id": "3EB0BB95F7CB2EA4008A43",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790126748424
+    },
+    {
+      "id": "A5B924C17E856C4FDF061A2F307BD030",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790126755358
+    },
+    {
+      "id": "A5532446B8FBC6D5029859B0EE52D370",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790126762134
+    },
+    {
+      "id": "A59F3041634D20C4F85F7253B59DC366",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790126764841
+    },
+    {
+      "id": "3EB08C5B221BB8B4ACDF39",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790126765478
+    },
+    {
+      "id": "A526CE94FDE90E6DF9EA8348CD2F8B06",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790126771307
+    },
+    {
+      "id": "3EB0AAAFE83042C7D8DA75",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790126772063
+    },
+    {
+      "id": "A566F306BC07AD6B08F318A264E4BF3B",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790127095108
+    },
+    {
+      "id": "3EB0D354D1E82E827FCE1B",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790127096524
+    },
+    {
+      "id": "A5C4D9561C9AC9DC1554B44C1F0F2B1B",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790127106723
+    },
+    {
+      "id": "3EB0FA82C94C0B482BE08F",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790127107847
+    },
+    {
+      "id": "3EB09CAF669A604910B8CC",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790127107855
+    },
+    {
+      "id": "3EB038BBAEAA559298F6A7",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790127110395
+    },
+    {
+      "id": "3EB09E9551578EAD7955DB",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790127110552
+    },
+    {
+      "id": "3EB0600B27F382EA3CCFEA",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790127318336
+    },
+    {
+      "id": "A5E18935958E4EB495BE66F003ECA83A",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790127605611
+    },
+    {
+      "id": "A59B23F5A34F128DC928D9C40BA274E9",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790127998111
+    },
+    {
+      "id": "3EB0027B2A8D9C6B981440",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790128000517
+    },
+    {
+      "id": "A596167048752907571581B11BF4CCAB",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790128008146
+    },
+    {
+      "id": "3EB0711027212EE7FE1396",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790128008661
+    },
+    {
+      "id": "3EB0A719412559544FEDE4",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790128008837
+    },
+    {
+      "id": "3EB0D22D87F53B3924AE03",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790128285757
+    }
+  ],
+  "120363428209663120@g.us": [
+    {
+      "id": "3EB08ED07B1460135BSTARFALL247E",
+      "sender": "182167447597059@lid",
+      "timestamp": 1790032235883
+    }
+  ],
+  "120363405079498012@g.us": [
+    {
+      "id": "A5A3D7B7AA68A17A2795E72582E56FD8",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790126787622
+    },
+    {
+      "id": "A575DF7CD3CE9FAB0D50FA168808967F",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790126808823
+    },
+    {
+      "id": "AC7F09460090A479457F943068DB6A0F",
+      "sender": "265361047982320@lid",
+      "timestamp": 1790126927591
+    },
+    {
+      "id": "A554027F90D1CE33CC6057BC536262E9",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790126946816
+    },
+    {
+      "id": "3EB05386CEA86B09450DEA",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790126947437
+    },
+    {
+      "id": "3EB00AEA8F89424446FD11",
+      "sender": "40094241189973@lid",
+      "timestamp": 1790126947904
+    },
+    {
+      "id": "3EB0BE732AB23CFBBBB0F6",
+      "sender": "40094241189973@lid",
+      "timestamp": 1790126949182
+    },
+    {
+      "id": "A51291C118F936FBDFA511E528755C61",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790127079401
+    },
+    {
+      "id": "A59036214A715B7FCD745AEE881D1C7C",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790202711908
+    },
+    {
+      "id": "A5C74A93842F7E2DA77699C505163872",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790203137578
+    },
+    {
+      "id": "A5A4C04A5F8A1D6265BC21A212BFD9E6",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790203893687
+    },
+    {
+      "id": "A50760EE6020F23E6B803D04C4336464",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790204010584
+    },
+    {
+      "id": "A5CCDE50738BA4BC75D8E04BC0DBD21F",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790204019489
+    },
+    {
+      "id": "A506A77DA02CF54963FF77D94BF3C442",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790204029388
+    },
+    {
+      "id": "A55749B5544D622C297CBA90F84B4643",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790204032201
+    },
+    {
+      "id": "3EB0FC3142EB7D4F98353F",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790204034347
+    },
+    {
+      "id": "A5A44A0F4EFD58F2D17C694BFEFBFD40",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790204043862
+    },
+    {
+      "id": "3EB0ABB3AF9519C5BE667F",
+      "sender": "40094241189973@lid",
+      "timestamp": 1790204047462
+    },
+    {
+      "id": "A5BB44368A00207B740F0325EE4DAA2E",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790204051994
+    },
+    {
+      "id": "3EB055D08C221754BCBE7E",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790204056269
+    },
+    {
+      "id": "3EB02F7B77FB92A3AC7581",
+      "sender": "40094241189973@lid",
+      "timestamp": 1790204220574
+    },
+    {
+      "id": "A5974D393106570B7C19D5F972419DCD",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790205253652
+    },
+    {
+      "id": "A5279CBEB43F4C3B2F9DE1821F611843",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790205254475
+    },
+    {
+      "id": "3EB0C11C040670E17E875C",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790205254866
+    },
+    {
+      "id": "3EB087D4DD1F7EFBB09F48",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790205258042
+    },
+    {
+      "id": "A51E3930397293A1A6F618AC2002ED5B",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790205278154
+    },
+    {
+      "id": "A5D3758728347814A772B2A80726378F",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790205299742
+    },
+    {
+      "id": "A5DB9C506B762A219756FEA239359ED7",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790205309977
+    },
+    {
+      "id": "A537541864ED5B3EA8DAF0DA8733723E",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790205340074
+    },
+    {
+      "id": "A52C23B3478207F733AC9FA39186CC6E",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790205367000
+    },
+    {
+      "id": "A5362D3F7F20AA998DEFE3AC021DBE05",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790205930444
+    },
+    {
+      "id": "3EB0FFD95D359354B277CA",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790205936325
+    },
+    {
+      "id": "3EB0C0DEA6583E7247D1D6",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790205939524
+    },
+    {
+      "id": "A58CEE2B0AFC63FA6FB10227CF30295F",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790206809702
+    },
+    {
+      "id": "3EB049699D8A9EE3FC91EE",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790206814358
+    },
+    {
+      "id": "3EB08D87A7B90693B76517",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790206817632
+    },
+    {
+      "id": "A5646277787678D8F16C80C4B0CE215C",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790207761895
+    },
+    {
+      "id": "A59DF82479C49BBDE33B3335B1DEEF84",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790207782721
+    },
+    {
+      "id": "A504BD5EDCCBF9062351191CBBFF6F6F",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790207786680
+    },
+    {
+      "id": "A5A4EB22F62E472A830985976B275848",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790207798891
+    },
+    {
+      "id": "A51924A31EA4BED020829F7232DEA696",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790207807606
+    },
+    {
+      "id": "A5C3C2FDFE789E99394F494A0661C20F",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790207833537
+    },
+    {
+      "id": "3EB01430451CBFBC985CC8",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790207834487
+    },
+    {
+      "id": "3EB038FEC9E8BE2337CC86",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790207892436
+    },
+    {
+      "id": "3EB01F532BBAB50F45BCD4",
+      "sender": "213653617930453@lid",
+      "timestamp": 1790207896242
+    },
+    {
+      "id": "3EB05D20EADC81D917D900",
+      "sender": "40094241189973@lid",
+      "timestamp": 1790207903861
+    },
+    {
+      "id": "A528D1DCEF599A9877F46387D08E9585",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790209186894
+    },
+    {
+      "id": "A5E2D3BC32A61FDA7E8B41A035A36496",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790209204598
+    },
+    {
+      "id": "A59065125A52E491DEE5198F60F764C2",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790209213684
+    },
+    {
+      "id": "3EB084783624AB1A31400B",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790209213924
+    },
+    {
+      "id": "3EB0F35A64E56A64E8D274",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790209217151
+    },
+    {
+      "id": "A52BB053CC82844C841788AC3A2A5D11",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790209228015
+    },
+    {
+      "id": "A536CE1F341CE3E2D0DE348ABDF14BF3",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790209248925
+    },
+    {
+      "id": "3EB0970F8B4F010946CAC0",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790209249076
+    },
+    {
+      "id": "3EB0223F52ABF4FF9BBEAD",
+      "sender": "40094241189973@lid",
+      "timestamp": 1790209249633
+    },
+    {
+      "id": "3EB0C2B110A1CEEBB41388",
+      "sender": "213653617930453@lid",
+      "timestamp": 1790209298656
+    },
+    {
+      "id": "A532BA5514189AD96D7C9195E457B280",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790209823517
+    },
+    {
+      "id": "A5A7E950EEE2AFCB9323F512DFBADE7E",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790209833457
+    },
+    {
+      "id": "A57252FEB1FF274E2500A610486A6B1A",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790210065822
+    },
+    {
+      "id": "A5F9AED391AC4CFE44E679DC0328B7D8",
+      "sender": "180711436906749@lid",
+      "timestamp": 1790215873078
+    },
+    {
+      "id": "A51542FE58699F52B4B5F4604EC99F5A",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790216951043
+    },
+    {
+      "id": "A53FE2CCCC92835C9DEE710E3EC2EF2B",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790216963397
+    },
+    {
+      "id": "3EB02FE863FE4E93164BCC",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790216963554
+    },
+    {
+      "id": "3EB01DDEF97D3A5E2FE7A7",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790216967611
+    },
+    {
+      "id": "A5312164CC11644F4C38D81ABD6E0523",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790217004732
+    },
+    {
+      "id": "3EB08BDAF8ED953BD6581A",
+      "sender": "213653617930453@lid",
+      "timestamp": 1790217057689
+    },
+    {
+      "id": "A5F18901F6E66471B3C8AF4DDDD757D0",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790217062849
+    },
+    {
+      "id": "3EB0806E1BC7E0674E29B9",
+      "sender": "40094241189973@lid",
+      "timestamp": 1790217063066
+    },
+    {
+      "id": "3EB0C62035CC26CF3981FD",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790217063149
+    },
+    {
+      "id": "3EB0806E1BC7E0674E29B9",
+      "sender": "40094241189973@lid",
+      "timestamp": 1790217063913
+    },
+    {
+      "id": "A51742E7E5ABE62E84B7CE3DEA582DF5",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790217111342
+    },
+    {
+      "id": "3EB0B8C34DE40135014FFD",
+      "sender": "40094241189973@lid",
+      "timestamp": 1790217114075
+    },
+    {
+      "id": "A5D6F31544416B67A6351CED4F51D999",
+      "sender": "180711436906749@lid",
+      "timestamp": 1790217120520
+    },
+    {
+      "id": "3EB05C4EBB29A247DA2D12",
+      "sender": "36851641536638@lid",
+      "timestamp": 1790217403545
+    },
+    {
+      "id": "ACEABCDA1269546F5BE5BEBFDEDF3F62",
+      "sender": "30752754409646@lid",
+      "timestamp": 1790217404240
+    },
+    {
+      "id": "3AE22B1E0E23D9D1F91A",
+      "sender": "65563212656727@lid",
+      "timestamp": 1790217461695
+    },
+    {
+      "id": "A5240D6AD66691EC39B1A7A526CEC3BD",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790217462359
+    },
+    {
+      "id": "3EB0715BAA2C333827E283",
+      "sender": "36851641536638@lid",
+      "timestamp": 1790217462499
+    },
+    {
+      "id": "3EB08F315FFA7E539C3A76",
+      "sender": "40094241189973@lid",
+      "timestamp": 1790217462815
+    },
+    {
+      "id": "3EB0306B194BE3E2AA93B0",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790217463024
+    },
+    {
+      "id": "A5240D6AD66691EC39B1A7A526CEC3BD",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790217472715
+    },
+    {
+      "id": "3EB0318303A63D4637282E",
+      "sender": "40094241189973@lid",
+      "timestamp": 1790217472850
+    },
+    {
+      "id": "3EB0F5462EC2CBCDDAAED5",
+      "sender": "36851641536638@lid",
+      "timestamp": 1790217472935
+    },
+    {
+      "id": "3EB0922B5D2F852018AF0D",
+      "sender": "213847075991654@lid",
+      "timestamp": 1790217473023
+    },
+    {
+      "id": "A56D575D5A4F4B784A72E38049441BA6",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790217492286
+    },
+    {
+      "id": "A57D0EBAD3B7E364885533E3AB4E8538",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790217518935
+    },
+    {
+      "id": "3ACF1F8E001676AFA0C2",
+      "sender": "65563212656727@lid",
+      "timestamp": 1790217531076
+    },
+    {
+      "id": "3A8884E4B222AC34264B",
+      "sender": "65563212656727@lid",
+      "timestamp": 1790217535759
+    },
+    {
+      "id": "3A2137C066000DC96BF3",
+      "sender": "65563212656727@lid",
+      "timestamp": 1790217616299
+    },
+    {
+      "id": "A5A3A7099A0A5F9CDDB8773826AC5E9D",
+      "sender": "257922013597821@lid",
+      "timestamp": 1790217641005
+    }
+  ],
+  "120363410032885716@g.us": [
+    {
+      "id": "ACD94FFB4EBFAF0F53D53266623826BE",
+      "sender": "2160435703837@lid",
+      "timestamp": 1790202471817
+    }
+  ]
+}

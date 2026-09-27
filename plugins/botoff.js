@@ -1,4 +1,4 @@
-import { OWNER_NUMBER } from '../config.js'
+import { esOwner } from '../config.js'
 
 export default {
   name: 'botoff',
@@ -11,7 +11,7 @@ export default {
       .split('@')[0]
       .replace(/\D/g, '')
 
-    const esOwner = numero.endsWith(OWNER_NUMBER)
+    const ownerPermitido = esOwner(m)
 
     let esAdmin = false
 

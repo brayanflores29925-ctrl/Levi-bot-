@@ -21,6 +21,11 @@ export default {
 
     const resultados = []
 
+    const senderActual = m.sender || m.key?.participant || m.participant || m.key?.remoteJid || ''
+    const numeroDetectado = String(senderActual).split('@')[0].split(':')[0].replace(/\D/g, '')
+    resultados.push(`🔎 Identificador detectado: ${senderActual}`)
+    resultados.push(`🔢 Número detectado: ${numeroDetectado}`)
+
     // Node.js
     const node = await ejecutar('node --version')
     resultados.push(node.ok ? `✅ Node.js: ${node.salida}` : '❌ Node.js: error')

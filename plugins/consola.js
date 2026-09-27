@@ -1,4 +1,4 @@
-import { OWNER_NUMBER } from '../config.js'
+import { esOwner } from '../config.js'
 
 export default {
   name: 'consola',
@@ -10,7 +10,7 @@ export default {
       .split('@')[0]
       .replace(/\D/g, '')
 
-    if (!numero.endsWith(OWNER_NUMBER)) {
+    if (!esOwner(m)) {
       return await sock.sendMessage(chatId, {
         text: '❌ *ACCESO DENEGADO*\n\nEste comando es exclusivo del OWNER de LeviBot.'
       })

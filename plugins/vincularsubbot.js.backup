@@ -137,7 +137,7 @@ export default {
       )
     }
 
-    if (subbots.some(s => s.numero === numero)) {
+    if (subbots.some(s => s.numero === numero && s.activo === true)) {
       return enviar(
         '❌ Ese número ya está registrado como Sub-Bot.'
       )
@@ -154,6 +154,7 @@ export default {
 
     let temporizador = null
     let vinculado = false
+    let subSock = null
 
     try {
       const { state, saveCreds } =
@@ -170,7 +171,7 @@ export default {
         opciones.browser = Browsers.ubuntu('Chrome')
       }
 
-      const subSock = makeWASocket(opciones)
+      subSock = makeWASocket(opciones)
 
       subSock.ev.on('creds.update', saveCreds)
 
@@ -209,13 +210,14 @@ export default {
 
       console.log('[LEVI CODE] Solicitando código para:', numero)
 
-      const code = await subSock.requestPairingCode(numero)
+      const code = await subSock.requestPairingCode(numero, 'Chrome')
 
       console.log('[LEVI CODE] Código recibido correctamente')
 
-        const codigo =
-          String(code).match(/.{1,4}/g)?.join('-') ||
-          String(code)
+      const codigo =
+        String(code).match(/.{1,4}/g)?.join('-') ||
+        String(code)
+
       const datos = [
         ...subbots,
         {
@@ -242,13 +244,13 @@ export default {
                 interactiveMessage: {
                   body: {
                     text:
-                      '📲 *VINCULAR DISPOSITIVO*\\n\\n' +
-                      'Toque *Dispositivos vinculados*\\n' +
-                      'Luego *Vincular nuevo dispositivo*\\n' +
-                      'Selecciona *Vincular con el número de teléfono*\\n\\n' +
-                      '📱 Número: *' + numero + '*\\n\\n' +
-                      '🔐 *Tu código:*\\n\\n' +
-                      codigo + '\\n\\n' +
+                      '📲 *VINCULAR DISPOSITIVO*\n\n' +
+                      'Toque *Dispositivos vinculados*\n' +
+                      'Luego *Vincular nuevo dispositivo*\n' +
+                      'Selecciona *Vincular con el número de teléfono*\n\n' +
+                      '📱 Número: *' + numero + '*\n\n' +
+                      '🔐 *Tu código:*\n\n' +
+                      codigo + '\n\n' +
                       '⏳ Tienes *15 minutos* para completar la vinculación.'
                   },
                   nativeFlowMessage: {
@@ -283,10 +285,10 @@ export default {
 
         await sock.sendMessage(jid, {
           text:
-            '📲 *VINCULAR DISPOSITIVO*\\n\\n' +
-            '📱 Número: *' + numero + '*\\n\\n' +
-            '🔐 *Tu código:*\\n\\n' +
-            codigo + '\\n\\n' +
+            '📲 *VINCULAR DISPOSITIVO*\n\n' +
+            '📱 Número: *' + numero + '*\n\n' +
+            '🔐 *Tu código:*\n\n' +
+            codigo + '\n\n' +
             '⏳ Tienes *15 minutos* para completar la vinculación.'
         })
       }
@@ -358,6 +360,12 @@ export default {
     } catch (error) {
       if (temporizador) {
         clearTimeout(temporizador)
+      }
+
+      if (subSock) {
+        try {
+          subSock.end?.(error)
+        } catch {}
       }
 
       fs.rmSync(carpeta, {

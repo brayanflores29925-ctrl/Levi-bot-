@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { OWNER_NUMBER } from '../config.js'
+import { esOwner } from '../config.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -16,7 +16,7 @@ export default {
       .split('@')[0]
       .replace(/\D/g, '')
 
-    if (!numero.endsWith(OWNER_NUMBER)) {
+    if (!esOwner(m)) {
       return enviar(
         '❌ *ACCESO DENEGADO*\n\n' +
         'Este comando es exclusivo del OWNER de LeviBot.'

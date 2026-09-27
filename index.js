@@ -352,6 +352,8 @@ function setupSocket(sock) {
 
       const chatId = m.key?.remoteJid
       const sender = m.key?.participant || m.participant || chatId
+      m.sender = sender
+      console.log("[OWNER DEBUG] sender:", sender, "| participant:", m.key?.participant, "| remoteJid:", m.key?.remoteJid)
 
       // 🎯 Objetivo central: mención, respuesta o reacción
       m.target = obtenerObjetivo(m)

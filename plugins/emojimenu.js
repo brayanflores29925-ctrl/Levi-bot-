@@ -1,4 +1,4 @@
-import { OWNER_NUMBER } from '../config.js'
+import { esOwner } from '../config.js'
 import { getDB, saveDB } from '../database.js'
 
 export default {
@@ -11,7 +11,7 @@ export default {
       .split('@')[0]
       .replace(/\D/g, '')
 
-    if (!numero.endsWith(OWNER_NUMBER)) {
+    if (!esOwner(m)) {
       return enviar(
         '❌ *ACCESO DENEGADO*\n\n' +
         'Este comando es exclusivo del OWNER de LeviBot.'
