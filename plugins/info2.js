@@ -1,6 +1,7 @@
 const GRUPO_OFICIAL = '120363405079498012@g.us'
 
 export default {
+  name: 'info2',
   command: ['info2'],
   help: ['info2'],
   tags: ['soporte', 'informacion'],
