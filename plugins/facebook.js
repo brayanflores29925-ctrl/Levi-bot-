@@ -4,6 +4,7 @@ const ALLDL_API = 'https://ahm7xmakki.com/api/alldl'
 
 export default {
   name: 'facebook',
+  aliases: ['fb', 'fbdl'],
 
   async execute(sock, m, parts) {
     const chatId = m.chat || m.key?.remoteJid
@@ -11,13 +12,24 @@ export default {
 
     if (!url) {
       return sock.sendMessage(chatId, {
-        text: '❌ Envía el enlace público de Facebook.\n\nEjemplo: /facebook https://www.facebook.com/...'
+        text: '📘 *DESCARGADOR DE FACEBOOK*\n\n' +
+              'Por favor, proporciona un enlace válido de Facebook.\n\n' +
+              '📌 *Uso:* `/facebook <link>`\n' +
+              '💡 *Ejemplo:* `/facebook https://www.facebook.com/watch?v=123456789`'
       })
     }
 
-    await sock.sendMessage(chatId, {
-      text: '⏳ Procesando Facebook...'
-    })
+    if (!/facebook\.com|fb\.watch/i.test(url)) {
+      return sock.sendMessage(chatId, {
+        text: '❌ *ENLACE INVÁLIDO*\n\nEl enlace proporcionado no pertenece a Facebook.'
+      })
+    }
+
+    if (m.key) {
+      await sock.sendMessage(chatId, {
+        react: { text: '⏳', key: m.key }
+      })
+    }
 
     try {
       const respuesta = await axios.get(ALLDL_API, {
@@ -28,34 +40,70 @@ export default {
       const datos = respuesta.data?.mediaInfo
 
       if (!respuesta.data?.success || !datos) {
+        if (m.key) await sock.sendMessage(chatId, {
+          react: { text: '❌', key: m.key }
+        })
+
         return sock.sendMessage(chatId, {
-          text: '❌ No pude obtener el contenido de Facebook.'
+          text: '❌ *ERROR EN DESCARGA*\n\nNo se pudo obtener el contenido. Asegúrate de que la publicación sea pública.'
         })
       }
 
-      if (datos.videoUrl) {
+      const videoUrl = datos.videoUrl || datos.hd || datos.sd
+      const audioUrl = datos.audioUrl
+      const imageUrl = datos.imageUrl || datos.photo
+      const titulo = datos.title?.trim() || 'Video de Facebook'
+
+      if (videoUrl) {
         await sock.sendMessage(chatId, {
-          video: { url: datos.videoUrl },
+          video: { url: videoUrl },
           mimetype: 'video/mp4',
-          caption: `📘 ${datos.title || 'Facebook'}`
+          caption: `📘 *FACEBOOK DOWNLOADER*\n\n` +
+                   `📄 *Título:* ${titulo}\n\n` +
+                   `✨ *Descargado con LeviBot*`
         })
-      } else if (datos.audioUrl) {
+      } else if (imageUrl) {
         await sock.sendMessage(chatId, {
-          audio: { url: datos.audioUrl },
+          image: { url: imageUrl },
+          caption: `📘 *FACEBOOK DOWNLOADER*\n\n` +
+                   `📄 *Título:* ${titulo}\n\n` +
+                   `✨ *Descargado con LeviBot*`
+        })
+      } else if (audioUrl) {
+        await sock.sendMessage(chatId, {
+          audio: { url: audioUrl },
           mimetype: 'audio/mpeg',
-          fileName: 'facebook.mp3'
+          fileName: `${titulo.slice(0, 20)}.mp3`
         })
       } else {
+        if (m.key) await sock.sendMessage(chatId, {
+          react: { text: '❌', key: m.key }
+        })
+
         return sock.sendMessage(chatId, {
-          text: '❌ No encontré un archivo descargable.'
+          text: '❌ *SIN CONTENIDO*\n\nNo se encontró ningún archivo multimedia descargable en este enlace.'
+        })
+      }
+
+      if (m.key) {
+        await sock.sendMessage(chatId, {
+          react: { text: '✅', key: m.key }
         })
       }
 
     } catch (error) {
       console.error('Error en /facebook:', error)
 
+      if (m.key) {
+        await sock.sendMessage(chatId, {
+          react: { text: '❌', key: m.key }
+        })
+      }
+
       await sock.sendMessage(chatId, {
-        text: `❌ Error en /facebook: ${error.message}`
+        text: '❌ *OCURRIÓ UN ERROR*\n\n' +
+              `No se pudo procesar la solicitud.\n` +
+              `📌 *Detalle:* \`${error.message}\``
       })
     }
   }
