@@ -28,32 +28,42 @@ export default {
         text: `🔎 Buscando: *${texto}*...`
       })
 
-      const respuesta = await axios.get('https://www.google.com/search', {
+      const respuesta = await axios.get('https://www.bing.com/search', {
         params: {
           q: texto,
-          hl: 'es'
+          setlang: 'es'
         },
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 Chrome/140.0.0.0 Mobile Safari/537.36'
+          'User-Agent':
+            'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/140 Mobile Safari/537.36'
         },
-        timeout: 30000
+        timeout: 15000
       })
 
       const $ = cheerio.load(respuesta.data)
       const resultados = []
+      const vistos = new Set()
 
-      $('div.MjjYud').each((_, elemento) => {
-        const titulo = $(elemento).find('h3').first().text().trim()
-        const enlace = $(elemento).find('a').first().attr('href')
-        const descripcion = $(elemento).find('.VwiC3b').first().text().trim()
+      $('a').each((_, elemento) => {
+        const enlace = $(elemento).attr('href')
+        const titulo = $(elemento).text().trim().replace(/\s+/g, ' ')
 
-        if (titulo && enlace && enlace.startsWith('http')) {
-          resultados.push({
-            titulo,
-            enlace,
-            descripcion
-          })
+        if (
+          !titulo ||
+          !enlace ||
+          !enlace.startsWith('http') ||
+          enlace.includes('bing.com')
+        ) {
+          return
         }
+
+        if (vistos.has(enlace)) return
+        vistos.add(enlace)
+
+        resultados.push({
+          titulo: titulo.slice(0, 150),
+          enlace
+        })
       })
 
       if (!resultados.length) {
@@ -69,7 +79,6 @@ export default {
         .map((resultado, indice) => {
           return (
             `*${indice + 1}. ${resultado.titulo}*\n` +
-            `${resultado.descripcion || 'Sin descripción disponible.'}\n` +
             `🔗 ${resultado.enlace}`
           )
         })
@@ -81,7 +90,6 @@ export default {
           `📌 *Consulta:* ${texto}\n\n` +
           `${lista}`
       })
-
     } catch (error) {
       console.error('Error en /buscar:', error)
 
