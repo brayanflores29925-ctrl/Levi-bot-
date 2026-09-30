@@ -1,4 +1,5 @@
 import axios from 'axios'
+import * as cheerio from 'cheerio'
 
 export default {
   name: 'buscar',
@@ -27,29 +28,35 @@ export default {
         text: `🔎 Buscando: *${texto}*...`
       })
 
-      const respuesta = await axios.get(
-        'https://prexzyapis.com/ai/chatbot',
-        {
-          params: {
-            text: texto,
-            search: 'true'
-          },
-          timeout: 30000
+      const respuesta = await axios.get('https://www.google.com/search', {
+        params: {
+          q: texto,
+          hl: 'es'
+        },
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 Chrome/140.0.0.0 Mobile Safari/537.36'
+        },
+        timeout: 30000
+      })
+
+      const $ = cheerio.load(respuesta.data)
+      const resultados = []
+
+      $('div.MjjYud').each((_, elemento) => {
+        const titulo = $(elemento).find('h3').first().text().trim()
+        const enlace = $(elemento).find('a').first().attr('href')
+        const descripcion = $(elemento).find('.VwiC3b').first().text().trim()
+
+        if (titulo && enlace && enlace.startsWith('http')) {
+          resultados.push({
+            titulo,
+            enlace,
+            descripcion
+          })
         }
-      )
+      })
 
-      const datos = respuesta.data
-
-      const resultado =
-        typeof datos === 'string'
-          ? datos
-          : datos?.result ||
-            datos?.response ||
-            datos?.answer ||
-            datos?.message ||
-            datos?.text
-
-      if (!resultado) {
+      if (!resultados.length) {
         return sock.sendMessage(chatId, {
           text:
             '❌ No encontré resultados para esa búsqueda.\n\n' +
@@ -57,11 +64,22 @@ export default {
         })
       }
 
+      const lista = resultados
+        .slice(0, 5)
+        .map((resultado, indice) => {
+          return (
+            `*${indice + 1}. ${resultado.titulo}*\n` +
+            `${resultado.descripcion || 'Sin descripción disponible.'}\n` +
+            `🔗 ${resultado.enlace}`
+          )
+        })
+        .join('\n\n')
+
       await sock.sendMessage(chatId, {
         text:
           `🔎 *RESULTADOS DE BÚSQUEDA*\n\n` +
           `📌 *Consulta:* ${texto}\n\n` +
-          `${resultado}`
+          `${lista}`
       })
 
     } catch (error) {
