@@ -1,7 +1,9 @@
-import axios from 'axios'
+import { execFile } from 'child_process'
+import { promisify } from 'util'
+import fs from 'fs'
+import path from 'path'
 
-const API_KEY = 'api-jSdKK'
-const STELLAR_API = 'https://api.stellarwa.xyz/dl/facebook'
+const execFileAsync = promisify(execFile)
 
 export default {
   name: 'facebook',
@@ -13,89 +15,110 @@ export default {
 
     if (!inputUrl) {
       return sock.sendMessage(chatId, {
-        text: '*DESCARGADOR DE FACEBOOK*\n\n' +
-              'Proporciona un enlace de Facebook.\n\n' +
-              '*Uso:* /facebook <url>\n' +
-              '*Ejemplo:* /facebook https://fb.watch/example'
+        text:
+          '*DESCARGADOR DE FACEBOOK*\n\n' +
+          'Proporciona un enlace de Facebook.\n\n' +
+          '*Uso:* /facebook <url>\n' +
+          '*Ejemplo:* /facebook https://www.facebook.com/share/v/...'
       }, { quoted: m })
     }
 
-    // Validación estricta de URL de Facebook
-    const fbRegex = /(https?:\/\/)?(www\.|web\.|m\.)?(facebook\.com|fb\.watch)\/.+/i
+    const fbRegex = /^(https?:\/\/)?(www\.|web\.|m\.)?(facebook\.com|fb\.watch)\/.+/i
+
     if (!fbRegex.test(inputUrl)) {
       return sock.sendMessage(chatId, {
-        text: 'Error: El enlace proporcionado no es una URL válida de Facebook.'
+        text: '❌ El enlace proporcionado no es una URL válida de Facebook.'
       }, { quoted: m })
     }
 
+    const tempDir = path.join(process.cwd(), 'temp')
+    const outputTemplate = path.join(tempDir, `facebook-${Date.now()}.%(ext)s`)
+
+    await fs.promises.mkdir(tempDir, { recursive: true })
+
     await sock.sendMessage(chatId, {
-      text: 'Procesando el enlace de Facebook...'
+      text: '⏳ Procesando el video de Facebook...'
     }, { quoted: m })
 
     try {
-      const respuesta = await axios.get(STELLAR_API, {
-        params: {
-          key: API_KEY,
-          url: inputUrl
-        },
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-          'Accept': 'application/json'
-        },
-        timeout: 45000
-      })
+      const { stdout } = await execFileAsync(
+        'yt-dlp',
+        [
+          '--no-playlist',
+          '--print',
+          'title',
+          '--print',
+          'filename',
+          '-f',
+          'bv*+ba/b',
+          '--merge-output-format',
+          'mp4',
+          '-o',
+          outputTemplate,
+          inputUrl
+        ],
+        {
+          timeout: 180000,
+          maxBuffer: 10 * 1024 * 1024
+        }
+      )
 
-      const res = respuesta.data
+      const lines = stdout
+        .split('\n')
+        .map(line => line.trim())
+        .filter(Boolean)
 
-      // Verificación de estado de respuesta de la API
-      if (!res || res.status === false) {
-        const errorMsg = res?.message || res?.error || 'La API no devolvió contenido para este enlace.'
-        return sock.sendMessage(chatId, {
-          text: `Error de la API: ${errorMsg}`
-        }, { quoted: m })
+      let titulo = lines[0] || 'Video de Facebook'
+      let archivo = lines[lines.length - 1]
+
+      if (!archivo || !fs.existsSync(archivo)) {
+        const posibles = await fs.promises.readdir(tempDir)
+        const candidatos = posibles
+          .filter(nombre => nombre.startsWith(path.basename(outputTemplate).split('.%(ext)s')[0]))
+          .filter(nombre => nombre.endsWith('.mp4'))
+          .map(nombre => path.join(tempDir, nombre))
+
+        archivo = candidatos[0]
       }
 
-      // Estructuración de datos con redundancia
-      const result = res.result || res.data || res
-      const hdUrl = result.hd || result.high || result.video_hd
-      const sdUrl = result.sd || result.low || result.video_sd || result.url || result.link || (typeof result === 'string' ? result : null)
+      if (!archivo || !fs.existsSync(archivo)) {
+        throw new Error('yt-dlp no produjo el archivo MP4 esperado.')
+      }
 
-      const videoUrl = hdUrl || sdUrl
-      const calidad = hdUrl ? 'HD' : 'SD'
-      const titulo = result.title || result.caption || result.description || 'Video de Facebook'
+      const stats = await fs.promises.stat(archivo)
 
-      if (!videoUrl || typeof videoUrl !== 'string') {
-        return sock.sendMessage(chatId, {
-          text: 'Error: No se encontró un enlace de video descargable en la publicación.'
-        }, { quoted: m })
+      if (stats.size === 0) {
+        throw new Error('El archivo descargado está vacío.')
       }
 
       await sock.sendMessage(chatId, {
-        video: { url: videoUrl },
+        video: { url: archivo },
         mimetype: 'video/mp4',
-        caption: `*FACEBOOK DOWNLOADER*\n\n` +
-                 `*Título:* ${titulo}\n` +
-                 `*Calidad:* ${calidad}\n` +
-                 `*Origen:* Facebook`
+        caption:
+          `*FACEBOOK DOWNLOADER*\n\n` +
+          `*Título:* ${titulo}\n` +
+          `*Origen:* Facebook`
       }, { quoted: m })
 
+      await fs.promises.unlink(archivo).catch(() => {})
+
     } catch (error) {
-      console.error('[FACEBOOK PLUGIN ERROR]:', error?.response?.data || error.message)
+      console.error('[FACEBOOK PLUGIN ERROR]:', error?.stderr || error?.message || error)
 
-      let mensajeError = 'No se pudo procesar la solicitud.'
+      let mensajeError = 'No se pudo descargar el video de Facebook.'
 
-      if (error.code === 'ECONNABORTED') {
-        mensajeError = 'El servidor de la API tardó demasiado en responder (Timeout).'
-      } else if (error.response?.status === 401 || error.response?.status === 403) {
-        mensajeError = 'La API Key no es válida o ha superado su límite de uso.'
-      } else if (error.response?.data?.message) {
-        mensajeError = error.response.data.message
-      } else if (error.message) {
+      if (error?.killed || error?.code === 'ETIMEDOUT') {
+        mensajeError = 'La descarga tardó demasiado y fue cancelada.'
+      } else if (String(error?.message || '').includes('Unsupported URL')) {
+        mensajeError = 'El enlace de Facebook no es compatible o ya no está disponible.'
+      } else if (String(error?.stderr || '').includes('Private')) {
+        mensajeError = 'El video es privado y no se puede descargar.'
+      } else if (error?.message) {
         mensajeError = error.message
       }
 
       await sock.sendMessage(chatId, {
-        text: `Error: ${mensajeError}`
+        text: `❌ Error: ${mensajeError}`
       }, { quoted: m })
     }
   }
