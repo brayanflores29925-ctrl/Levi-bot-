@@ -3,6 +3,7 @@ import { execFile } from 'child_process'
 import { promisify } from 'util'
 import fs from 'fs'
 import path from 'path'
+import axios from 'axios'
 
 const execFileAsync = promisify(execFile)
 
@@ -234,33 +235,53 @@ export default {
         )
 
       } else {
-        console.log('[PLAY] Descarga automática de audio...')
+        console.log('[PLAY] Descarga de audio mediante API DVYER...')
 
-        await descargar(
-          pendiente.url,
-          [
-            '--no-playlist',
-            '--force-overwrites',
-            '--no-warnings',
-            '-f',
-            'ba/b',
-            '-x',
-            '--audio-format',
-            'mp3',
-            '--audio-quality',
-            '5',
-            '-o',
-            output,
-            pendiente.url
-          ],
-          { timeout: 300000 }
-        )
+        const apiKey = process.env.DVYER_API_KEY
 
-        if (!fs.existsSync(output)) {
-          throw new Error('yt-dlp no creó el audio final.')
+        if (!apiKey) {
+          throw new Error('DVYER_API_KEY no está configurada en .env')
         }
 
-        const bufferAudio = fs.readFileSync(output)
+        const respuesta = await axios.get(
+          'https://dv-yer-api.online/ytmp3',
+          {
+            params: {
+              url: pendiente.url
+            },
+            headers: {
+              'x-api-key': apiKey
+            },
+            timeout: 60000
+          }
+        )
+
+        const datos = respuesta.data
+
+        if (!datos?.ok || !datos?.download_url) {
+          throw new Error(
+            `API DVYER no devolvió un enlace de descarga: ${JSON.stringify(datos)}`
+          )
+        }
+
+        console.log('[PLAY] DVYER respondió correctamente.')
+        console.log('[PLAY] Descargando MP3 desde DVYER...')
+
+        const audioResponse = await axios.get(
+          datos.download_url,
+          {
+            responseType: 'arraybuffer',
+            timeout: 120000,
+            maxContentLength: 50 * 1024 * 1024,
+            maxBodyLength: 50 * 1024 * 1024
+          }
+        )
+
+        const bufferAudio = Buffer.from(audioResponse.data)
+
+        if (!bufferAudio.length) {
+          throw new Error('DVYER devolvió un archivo de audio vacío.')
+        }
 
         await sock.sendMessage(
           chatId,
@@ -268,7 +289,7 @@ export default {
             audio: bufferAudio,
             mimetype: 'audio/mpeg',
             fileName:
-              `${limpiarNombre(pendiente.title)}.mp3`,
+              `${limpiarNombre(datos.title || pendiente.title)}.mp3`,
             ptt: false
           },
           { quoted: m }
