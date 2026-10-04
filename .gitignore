@@ -20,3 +20,9 @@ index.js.backup*
 *.status
 
 authcodes.json
+
+# Copias temporales
+*.save
+*.bak
+
+.env.save*
