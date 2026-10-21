@@ -6,335 +6,87 @@ import path from 'path'
 import axios from 'axios'
 
 const execFileAsync = promisify(execFile)
-
-const pendientes = new Map()
 const TEMP_DIR = path.join(process.cwd(), 'temp')
-
-if (!fs.existsSync(TEMP_DIR)) {
-  fs.mkdirSync(TEMP_DIR, { recursive: true })
-}
+if (!fs.existsSync(TEMP_DIR)) fs.mkdirSync(TEMP_DIR, { recursive: true })
 
 function limpiarNombre(nombre) {
-  return nombre
-    .replace(/[\\/:*?"<>|]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, 100)
-}
-
-async function descargar(url, args, opciones = {}) {
-  const { timeout = 300000 } = opciones
-
-  try {
-    const resultado = await execFileAsync(
-      'yt-dlp',
-      args,
-      {
-        timeout,
-        maxBuffer: 25 * 1024 * 1024
-      }
-    )
-
-    console.log('[PLAY] yt-dlp:', resultado.stdout || '')
-    return resultado
-  } catch (error) {
-    console.error('[PLAY] yt-dlp ERROR:')
-    console.error(error.stderr || error.message)
-    throw error
-  }
+  return nombre.replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, ' ').trim().slice(0, 80)
 }
 
 export default {
   name: 'play',
-  aliases: ['yt', 'song', 'descargar', 'video'],
+  aliases: ['yt', 'song', 'musica'],
 
   async execute(sock, m, parts, enviar) {
     const chatId = m.key?.remoteJid
     const busqueda = parts.join(' ').trim()
-
-    if (!busqueda) {
-      return enviar(
-        '⚠️ *PLAY - DESCARGADOR*\n\n' +
-        'Escribe el nombre de una canción o vídeo.\n\n' +
-        '📌 *Ejemplo:* .play Feliz Navidad'
-      )
-    }
+    if (!busqueda) return enviar('⚠️ Usa: *.play nombre de la canción*')
 
     try {
-      await enviar(`🔎 Buscando: *${busqueda}*...`)
+      await sock.sendMessage(chatId, { text: `🔎 Buscando *${busqueda}*...` }, { quoted: m })
+      
+      const { videos } = await ytSearch(busqueda)
+      const video = videos?.[0]
+      if (!video) return enviar('❌ Sin resultados.')
 
-      const resultado = await ytSearch(busqueda)
-      const video = resultado.videos?.[0]
+      await sock.sendMessage(chatId, { text: `⏳ Descargando *${video.title}*...` }, { quoted: m })
 
-      if (!video) {
-        return enviar('❌ No se encontraron resultados.')
-      }
+      const id = Date.now()
+      const output = path.join(TEMP_DIR, `play-${id}.mp3`)
+      let bufferAudio
 
-      console.log('[PLAY DEBUG] ytSearch OK:', video.url)
-
-      pendientes.set(chatId, {
-        url: video.url,
-        title: video.title
-      })
-
-      const titulo = video.title
-      const canal = video.author?.name || 'Desconocido'
-      const duracion = video.timestamp || 'N/A'
-      const vistas = video.views
-        ? Number(video.views).toLocaleString()
-        : 'N/A'
-
-      const mensajePortada =
-        '╭━━━━━━━━━━━━━━━━━━━━╮\n' +
-        '┃     🎵 YOUTUBE PLAY     ┃\n' +
-        '╰━━━━━━━━━━━━━━━━━━━━╯\n\n' +
-        `📌 *Título:* ${titulo}\n` +
-        `👤 *Canal:* ${canal}\n` +
-        `⏱️ *Duración:* ${duracion}\n` +
-        `👁️ *Vistas:* ${vistas}\n\n` +
-        '👇 *Elige el formato de descarga:*\n\n' +
-        '🎬 *.1* → Descargar Vídeo MP4\n' +
-        '🎧 *.2* → Descargar Audio MP3'
-
+      // INTENTO 1: API DVYER (más rápido)
       try {
-        const miniatura = video.thumbnail
-
-        if (miniatura) {
-          await sock.sendMessage(
-            chatId,
-            {
-              image: { url: miniatura },
-              caption: mensajePortada
-            },
-            { quoted: m }
-          )
-        } else {
-          await sock.sendMessage(
-            chatId,
-            {
-              text: mensajePortada
-            },
-            { quoted: m }
-          )
-        }
-
-        console.log('[PLAY] Menú enviado correctamente.')
-        return
-      } catch (errorMenu) {
-        console.error('[PLAY] Error enviando menú:', errorMenu)
-
-        return enviar(mensajePortada)
-      }
-
-    } catch (error) {
-      console.error('[LEVI] ERROR /play:', error)
-      return enviar('❌ No se pudo realizar la búsqueda.')
-    }
-  },
-
-  async seleccionar(sock, m, opcion) {
-    const chatId = m.key?.remoteJid
-    const opcionFinal = String(opcion).trim()
-    const pendiente = pendientes.get(chatId)
-
-    if (!pendiente) {
-      return sock.sendMessage(
-        chatId,
-        {
-          text:
-            '❌ *NO HAY UNA BÚSQUEDA PENDIENTE*\n\n' +
-            'Primero utiliza *.play <nombre de la canción>*.'
-        },
-        { quoted: m }
-      )
-    }
-
-    let esVideo = false
-    let esAudio = false
-
-    if (
-      opcionFinal === '.1' ||
-      opcionFinal === '1' ||
-      opcionFinal.includes('1.')
-    ) {
-      esVideo = true
-    } else if (
-      opcionFinal === '.2' ||
-      opcionFinal === '2' ||
-      opcionFinal.includes('2.')
-    ) {
-      esAudio = true
-    } else {
-      return sock.sendMessage(
-        chatId,
-        {
-          text:
-            '⚠️ *Opción incorrecta*\n\n' +
-            '🎬 *.1* → Vídeo\n' +
-            '🎧 *.2* → Audio'
-        },
-        { quoted: m }
-      )
-    }
-
-    pendientes.delete(chatId)
-
-    const id =
-      `${Date.now()}-${Math.random().toString(36).slice(2)}`
-
-    const output = path.join(
-      TEMP_DIR,
-      `play-${id}.${esVideo ? 'mp4' : 'mp3'}`
-    )
-
-    try {
-      await sock.sendMessage(
-        chatId,
-        {
-          text: esVideo
-            ? '⏳ *Descargando vídeo...*\n\nEstoy buscando automáticamente el mejor formato disponible 🎬'
-            : '⏳ *Descargando audio...*\n\nEstoy preparando el audio 🎧'
-        },
-        { quoted: m }
-      )
-
-      if (esVideo) {
-        console.log('[PLAY] Descarga automática de vídeo...')
-
-        await descargar(
-          pendiente.url,
-          [
-            '--no-playlist',
-            '--force-overwrites',
-            '--no-warnings',
-            '-f',
-            'bv*+ba/b',
-            '--merge-output-format',
-            'mp4',
-            '-o',
-            output,
-            pendiente.url
-          ],
-          { timeout: 300000 }
-        )
-
-        if (!fs.existsSync(output)) {
-          throw new Error('yt-dlp no creó el vídeo final.')
-        }
-
-        const bufferVideo = fs.readFileSync(output)
-
-        await sock.sendMessage(
-          chatId,
-          {
-            video: bufferVideo,
-            mimetype: 'video/mp4',
-            caption: `📹 *${pendiente.title}*`
-          },
-          { quoted: m }
-        )
-
-      } else {
-        console.log('[PLAY] Descarga de audio mediante API DVYER...')
-
         const apiKey = process.env.DVYER_API_KEY
+        if (!apiKey) throw new Error('no key')
+        
+        const { data } = await axios.get('https://dv-yer-api.online/ytmp3', {
+          params: { url: video.url },
+          headers: { 'x-api-key': apiKey },
+          timeout: 60000
+        })
 
-        if (!apiKey) {
-          throw new Error('DVYER_API_KEY no está configurada en .env')
+        if (data?.ok && data?.download_url) {
+          const res = await axios.get(data.download_url, { responseType: 'arraybuffer', timeout: 120000 })
+          bufferAudio = Buffer.from(res.data)
         }
-
-        const respuesta = await axios.get(
-          'https://dv-yer-api.online/ytmp3',
-          {
-            params: {
-              url: pendiente.url
-            },
-            headers: {
-              'x-api-key': apiKey
-            },
-            timeout: 60000
-          }
-        )
-
-        const datos = respuesta.data
-
-        if (!datos?.ok || !datos?.download_url) {
-          throw new Error(
-            `API DVYER no devolvió un enlace de descarga: ${JSON.stringify(datos)}`
-          )
-        }
-
-        console.log('[PLAY] DVYER respondió correctamente.')
-        console.log('[PLAY] Descargando MP3 desde DVYER...')
-
-        const audioResponse = await axios.get(
-          datos.download_url,
-          {
-            responseType: 'arraybuffer',
-            timeout: 120000,
-            maxContentLength: 50 * 1024 * 1024,
-            maxBodyLength: 50 * 1024 * 1024
-          }
-        )
-
-        const bufferAudio = Buffer.from(audioResponse.data)
-
-        if (!bufferAudio.length) {
-          throw new Error('DVYER devolvió un archivo de audio vacío.')
-        }
-
-        await sock.sendMessage(
-          chatId,
-          {
-            audio: bufferAudio,
-            mimetype: 'audio/mpeg',
-            fileName:
-              `${limpiarNombre(datos.title || pendiente.title)}.mp3`,
-            ptt: false
-          },
-          { quoted: m }
-        )
+      } catch (e) {
+        console.log('[PLAY] DVYER falló, usando yt-dlp...')
       }
 
-      console.log(
-        `[LEVI] PLAY enviado correctamente (${esVideo ? 'Video' : 'Audio'})`
-      )
+      // INTENTO 2: yt-dlp si falla DVYER
+      if (!bufferAudio || !bufferAudio.length) {
+        const tempOut = path.join(TEMP_DIR, `play-${id}.%(ext)s`)
+        await execFileAsync('yt-dlp', [
+          '--no-playlist', '-x', '--audio-format', 'mp3', '--audio-quality', '0',
+          '-o', tempOut, video.url
+        ], { timeout: 300000 })
 
-    } catch (error) {
-      console.error('[LEVI] ERROR selección PLAY:')
-      console.error(error.stderr || error.message || error)
-
-      await sock.sendMessage(
-        chatId,
-        {
-          text:
-            '❌ *No se pudo completar la descarga.*\n\n' +
-            'El vídeo o audio no está disponible en un formato compatible.'
-        },
-        { quoted: m }
-      )
-
-    } finally {
-      try {
-        if (fs.existsSync(output)) {
-          fs.unlinkSync(output)
-        }
-      } catch (errorLimpieza) {
-        console.error(
-          '[PLAY] No se pudo eliminar temporal:',
-          errorLimpieza.message
-        )
+        // buscar el archivo creado
+        const file = fs.readdirSync(TEMP_DIR).find(f => f.startsWith(`play-${id}.`) && f.endsWith('.mp3'))
+        if (!file) throw new Error('No se creó mp3')
+        bufferAudio = fs.readFileSync(path.join(TEMP_DIR, file))
+        try { fs.unlinkSync(path.join(TEMP_DIR, file)) } catch {}
       }
-    }
-  },
 
-  register(sock) {
-    sock.playSelection = (m, opcion) => {
-      return this.seleccionar(
-        sock,
-        m,
-        String(opcion).trim()
-      )
+      if (!bufferAudio?.length) throw new Error('Audio vacío')
+
+      // ENVÍO DIRECTO COMO AUDIO
+      await sock.sendMessage(chatId, {
+        audio: bufferAudio,
+        mimetype: 'audio/mpeg',
+        fileName: `${limpiarNombre(video.title)}.mp3`,
+        ptt: false
+      }, { quoted: m })
+
+      // Si quieres que llegue como documento también (más seguro), usa esto en vez del de arriba:
+      // await sock.sendMessage(chatId, { document: bufferAudio, mimetype: 'audio/mpeg', fileName: `${limpiarNombre(video.title)}.mp3` }, { quoted: m })
+
+      try { if (fs.existsSync(output)) fs.unlinkSync(output) } catch {}
+
+    } catch (e) {
+      console.error('[PLAY]', e.message || e)
+      await sock.sendMessage(chatId, { text: '❌ No se pudo descargar el audio.' }, { quoted: m })
     }
   }
-}
+          }
