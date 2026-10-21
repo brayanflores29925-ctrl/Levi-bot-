@@ -11,126 +11,76 @@ export default {
   aliases: ['s'],
 
   async execute(sock, m, parts, enviar) {
-    const chatId = m.key?.remoteJid
+    const chatId = m.chat || m.key?.remoteJid
 
-    const imagen =
-      m.message?.imageMessage ||
-      m.message?.extendedTextMessage?.contextInfo?.quotedMessage?.imageMessage
-
-    const video =
-      m.message?.videoMessage ||
-      m.message?.extendedTextMessage?.contextInfo?.quotedMessage?.videoMessage
+    const quoted = m.message?.extendedTextMessage?.contextInfo?.quotedMessage
+    const imagen = m.message?.imageMessage || quoted?.imageMessage
+    const video = m.message?.videoMessage || quoted?.videoMessage
 
     if (!imagen && !video) {
-      return enviar(
-        '🖼️ *STICKER*\n\n' +
-        'Envía o responde a una imagen o video con:\n' +
-        '/sticker'
-      )
+      return await sock.sendMessage(chatId, { 
+        text: '🖼️ *STICKER*\n\nEnvía o responde a una imagen/video con:\n/s\n/sticker' 
+      }, { quoted: m })
     }
 
     const tempDir = path.join(process.cwd(), 'temp')
+    await fs.promises.mkdir(tempDir, { recursive: true })
+
     const id = Date.now()
-    const entrada = path.join(tempDir, `sticker-${id}-input`)
-    const salida = path.join(tempDir, `sticker-${id}.webp`)
+    const esImagen = !!imagen
+    const entrada = path.join(tempDir, `in-${id}.${esImagen ? 'jpg' : 'mp4'}`)
+    const salida = path.join(tempDir, `out-${id}.webp`)
 
     try {
-      await fs.promises.mkdir(tempDir, { recursive: true })
-
-      const tipo = imagen ? 'image' : 'video'
       const contenido = imagen || video
+      const tipo = esImagen ? 'image' : 'video'
       const stream = await downloadContentFromMessage(contenido, tipo)
+      
       const chunks = []
-
-      for await (const chunk of stream) {
-        chunks.push(chunk)
-      }
-
+      for await (const chunk of stream) chunks.push(chunk)
       const buffer = Buffer.concat(chunks)
 
-      if (!buffer.length) {
-        throw new Error('El archivo recibido está vacío.')
-      }
-
+      if (!buffer.length) throw new Error('Buffer vacío')
+      
       await fs.promises.writeFile(entrada, buffer)
 
-      if (imagen) {
-        await execFileAsync(
-          'ffmpeg',
-          [
-            '-y',
-            '-i',
-            entrada,
-            '-vf',
-            'scale=512:512:force_original_aspect_ratio=decrease,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=white@0',
-            '-c:v',
-            'libwebp',
-            '-quality',
-            '80',
-            '-compression_level',
-            '6',
-            '-preset',
-            'picture',
+      // Args optimizados
+      const ffmpegArgs = esImagen 
+        ? [
+            '-y', '-i', entrada,
+            '-vf', 'scale=512:512:flags=lanczos:force_original_aspect_ratio=decrease,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=0x00000000',
+            '-c:v', 'libwebp',
+            '-quality', '90',
+            '-compression_level', '4',
+            '-preset', 'picture',
+            '-an', '-vsync', '0',
             salida
-          ],
-          {
-            timeout: 60000,
-            maxBuffer: 5 * 1024 * 1024
-          }
-        )
-      } else {
-        await execFileAsync(
-          'ffmpeg',
-          [
-            '-y',
-            '-i',
-            entrada,
-            '-t',
-            '8',
-            '-vf',
-            'scale=512:512:force_original_aspect_ratio=decrease,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=white@0',
-            '-c:v',
-            'libwebp',
-            '-loop',
-            '0',
+          ]
+        : [
+            '-y', '-i', entrada,
+            '-t', '7',
+            '-vf', 'scale=512:512:flags=lanczos:force_original_aspect_ratio=decrease,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=0x00000000,fps=15',
+            '-c:v', 'libwebp',
+            '-loop', '0',
             '-an',
-            '-quality',
-            '70',
-            '-compression_level',
-            '6',
-            '-preset',
-            'default',
+            '-quality', '70',
+            '-compression_level', '4',
+            '-preset', 'default',
             salida
-          ],
-          {
-            timeout: 90000,
-            maxBuffer: 5 * 1024 * 1024
-          }
-        )
-      }
+          ]
 
-      const stats = await fs.promises.stat(salida)
+      await execFileAsync('ffmpeg', ffmpegArgs, { timeout: 90000 })
 
-      if (stats.size === 0) {
-        throw new Error('FFmpeg produjo un WebP vacío.')
-      }
+      const stickerBuffer = await fs.promises.readFile(salida)
+      
+      await sock.sendMessage(chatId, { sticker: stickerBuffer }, { quoted: m })
 
-      await sock.sendMessage(
-        chatId,
-        {
-          sticker: {
-            url: salida
-          }
-        },
-        { quoted: m }
-      )
-
-    } catch (error) {
-      console.error('Error en /sticker:', error?.stderr || error?.message || error)
-      await enviar('❌ No se pudo crear el sticker.')
+    } catch (e) {
+      console.error('Error sticker:', e)
+      await sock.sendMessage(chatId, { text: `❌ Error: ${e.message}\nAsegúrate de tener ffmpeg instalado.` }, { quoted: m })
     } finally {
       await fs.promises.unlink(entrada).catch(() => {})
       await fs.promises.unlink(salida).catch(() => {})
     }
   }
-}
+        }
