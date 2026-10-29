@@ -3,7 +3,7 @@ import path from 'path'
 
 const DATA_FILE = path.join(process.cwd(), 'data', 'subbots.json')
 
-export const MAX_SUBBOTS = 10
+export const MAX_SUBBOTS = 100
 
 function cargar() {
   try {
