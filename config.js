@@ -22,6 +22,5 @@ export function obtenerNumeroUsuario(m = {}) {
 export function esOwner(m = {}) {
   const owner = String(OWNER_NUMBER).replace(/\D/g, '')
   const numero = obtenerNumeroUsuario(m)
-
   return numero.endsWith(owner)
 }
